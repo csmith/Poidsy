@@ -24,7 +24,6 @@
 
  session_start();
 
- define('OPENID_TRUSTROOT', $_SESSION['trustroot']);
  define('OPENID_IMMEDIATE', true);
 
  if (isset($_GET['openid_id'])) {

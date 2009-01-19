@@ -56,11 +56,11 @@
   public static function buildRequest($type, $base, $delegate, $identity, $returnURL, $handle) {
    $args = array(
     'openid.ns' => self::NAMESPACE,
-	'openid.mode' => 'checkid_' . $type,
-	'openid.identity' => $delegate,
-	'openid.claimed_id' => $identity,
-	'openid.trust_root' => self::getTrustRoot(),
-	'openid.return_to' => self::addArguments($returnURL,
+    'openid.mode' => 'checkid_' . $type,
+    'openid.identity' => $delegate,
+    'openid.claimed_id' => $identity,
+    'openid.trust_root' => self::getTrustRoot($returnURL),
+    'openid.return_to' => self::addArguments($returnURL,
 		array('openid.nonce' => $_SESSION['openid']['nonce']))
    );
 
@@ -73,12 +73,19 @@
    return self::addArguments($base, $args);
   }
 
-  private static function getTrustRoot() {
+  private static function getTrustRoot($base = null) {
    if (defined('OPENID_TRUSTROOT')) {
     return OPENID_TRUSTROOT;
-   } else {
-    return self::getCurrentURL();
    }
+
+   $curr = self::getCurrentURL();
+   $root = $base == null ? $curr : $base;
+
+   while (substr($curr, 0, strlen($root)) != $root) {
+    $root = dirname($root) . '/';
+   }
+
+   return $root; 
   }
 
   private static function addSRegArgs(&$args) {
