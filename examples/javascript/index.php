@@ -32,6 +32,8 @@
   exit;
  }
 
+ $_SESSION['trustroot'] = URLBuilder::getCurrentURL();
+
  if (isset($_POST['openid_url']) || isset($_REQUEST['openid_mode'])) {
   // Proxy for non-JS users
 

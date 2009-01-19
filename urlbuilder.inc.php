@@ -74,13 +74,16 @@
   }
 
   private static function getTrustRoot($base = null) {
+   $curr = self::getCurrentURL();
+
    if (defined('OPENID_TRUSTROOT')) {
-    return OPENID_TRUSTROOT;
+    $root = OPENID_TRUSTROOT; 
+   } else {
+    $root = $base == null ? $curr : $base;
    }
 
-   $curr = self::getCurrentURL();
-   $root = $base == null ? $curr : $base;
-
+   // Note that this may end up going back to 'http:/' if
+   // the domains don't match.
    while (substr($curr, 0, strlen($root)) != $root) {
     $root = dirname($root) . '/';
    }
