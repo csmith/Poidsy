@@ -73,8 +73,8 @@
    return self::addArguments($base, $args);
   }
 
-  private static function getTrustRoot($base = null) {
-   $curr = self::getCurrentURL();
+  public static function getTrustRoot($base = null, $curl = null) {
+   $curr = $curl == null ? self::getCurrentURL() : $curl;
 
    if (defined('OPENID_TRUSTROOT')) {
     $root = OPENID_TRUSTROOT; 
