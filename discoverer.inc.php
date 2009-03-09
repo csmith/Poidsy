@@ -154,12 +154,23 @@ class Discoverer {
    return false;
   }
 
-  var_dump($sxml);
+  // TODO: Better handling of namespaces
   foreach ($sxml->XRD->Service as $service) {
    if ((String) $service->Type == 'http://specs.openid.net/auth/2.0/server') {
-
+    $this->version = 2;
+    $this->server = (String) $service->URI;
+    $this->identity = $this->delegate = 'http://specs.openid.net/auth/2.0/identifier_select';
     return true;
    } else if ((String) $service->Type == 'http://specs.openid.net/auth/2.0/signon') {
+    $this->version = 2;
+    $this->server = (String) $service->URI;
+
+    if (isset($service->LocalID)) {
+     $this->identity = (String) $service->LocalID;
+    } else {
+     $this->identity = 'http://specs.openid.net/auth/2.0/identifier_select';
+    }
+    $this->delegate = 'http://specs.openid.net/auth/2.0/identifier_select';
 
     return true;
    }
@@ -172,6 +183,7 @@ class Discoverer {
   $meta = self::getMetaTags($data); 
 
   if (isset($meta['x-xrds-location'])) {
+   // TODO: Allow relative URLs?
    return $this->yadisDiscover($meta['x-xrds-location'], false);
   }
 
