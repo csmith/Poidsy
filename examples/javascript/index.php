@@ -85,12 +85,13 @@
    will be submitted as usual and you'll leave this page (but, as usual, will
    return when your IdP is done with you). If your identity provider is
    <em>broken</em>, you won't see anything happening after the initial page
-   load and redirect. This is because the identity provider is trying to
+   load and redirect. This is either because the identity provider is trying to
    interact with you (via a hidden iframe) when it has been explicitly told
-   not to. This is the identity provider's fault (it's violating the OpenID
-   specifications), not Poidsy's. If you were implementing this on a live site,
-   you'd probably add a timer to detect if it wasn't working and do a normal
-   login.
+   not to, or because it is sending some kind of non-openID error response,
+   such as a HTTP 500 error. This is the identity provider's fault (it's
+   violating the OpenID specifications), not Poidsy's. If you were implementing
+   this on a live site, you'd probably want to either add a timeout or monitor
+   the iframe status to detect if it wasn't working and do a normal login.
   </p>
   <p>
    Note: if you are using Firefox and have the 'Disallow third party cookies'
