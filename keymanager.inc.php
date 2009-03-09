@@ -61,7 +61,7 @@
    * @param String $server The server to associate with
    */
   public static function associate($server) {
-   $data = URLBuilder::buildAssociate($server);
+   $data = URLBuilder::buildAssociate($server, $_SESSION['openid']['version']);
 
    try {
     $res = Poster::post($server, $data);
@@ -239,7 +239,7 @@
    * @return True if the request has been authenticated, false otherwise.
    */
   public static function dumbAuthenticate() {
-   $url = URLBuilder::buildAuth($_REQUEST);
+   $url = URLBuilder::buildAuth($_REQUEST, $_SESSION['openid']['version']);
 
    try {
     $data = Poster::post($_SESSION['openid']['server'], $url);
