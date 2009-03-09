@@ -131,9 +131,9 @@
   <form action="<?PHP echo htmlentities($_SERVER['REQUEST_URI']); ?>"
 	method="post">
    <ul>
-    <li><label><input type="radio" name="openid_type" value="gmail.com"> <img src="google.png" alt="Google"> Log in with my Google account</label></li>
-    <li><label><input type="radio" name="openid_type" value="yahoo.com"> <img src="yahoo.png" alt="Yahoo!"> Log in with my Yahoo! account</label></li>
-    <li><label><input type="radio" name="openid_type" value="openid_url" checked="checked"> Log in with another OpenID identity:</label> <br>
+    <li><label><input type="radio" name="openid_type" value="gmail.com"> <img src="google.png" alt="Google"> Login with my Google account</label></li>
+    <li><label><input type="radio" name="openid_type" value="yahoo.com"> <img src="yahoo.png" alt="Yahoo!"> Login with my Yahoo! account</label></li>
+    <li><label><input type="radio" name="openid_type" value="openid_url" checked="checked"> Login with another OpenID identity:</label> <br>
         <input type="text" name="openid_url" id="openid_url"></li>
    </ul>
    <input type="submit" value="Login">
