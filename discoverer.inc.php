@@ -104,12 +104,63 @@ class Discoverer {
  }
 
  private function discover($uri) {
-  // TODO: Yaris discovery
-
   $this->delegate = $uri;
   $this->server = null;
 
-  $this->htmlDiscover($uri);
+  if (!$this->yadisDiscover($uri)) {
+   $this->htmlDiscover($uri);
+  }
+ }
+
+ private function yadisDiscover($uri, $allowLocation = true) {
+  $ctx = stream_context_create(array(
+    'http' => array(
+      'header' => array("Accept: application/xrds+xml\r\n"),
+    )
+  ));
+
+  $fh = @fopen($uri, 'r', false, $ctx);
+
+  if (!$fh) {
+   return false;
+  }
+
+  $details = stream_get_meta_data($fh);
+
+  $data = '';
+  while (!feof($fh) && strpos($data, '</head>') === false) {
+   $data .= fgets($fh);
+  }
+
+  fclose($fh);
+
+  foreach ($details['wrapper_data'] as $line) {
+   if ($allowLocation && preg_match('/^X-XRDS-Location:\s*(.*?)$/i', $line, $m)) {
+    // TODO: Allow relative URLs?
+    return $this->yadisDiscover($m[1], false);
+   } else if (preg_match('#^Content-type:\s*application/xrds\+xml(;.*?)?$#i', $line)) {
+    return $this->parseYadis($data);
+   }
+  }
+
+  return $this->parseYadisHTML($data);
+ }
+
+ private function parseYadis($data) {
+  $sxml = @new SimpleXMLElement($data); 
+
+  if (!$sxml) {
+   // TODO: Die somehow?
+   return false;
+  }
+
+  foreach ($sxml->xrd->service as $service) {
+   // TODO: Meh
+  }
+ }
+
+ private function parseYadisHTML($data) {
+  // TODO: Implement me
  }
 
  private function htmlDiscover($uri) {
