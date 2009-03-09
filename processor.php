@@ -246,6 +246,7 @@
    if ($_SESSION['openid']['delegate'] == 'http://specs.openid.net/auth/2.0/identifier_select') {
     $_SESSION['openid']['identity'] = $_REQUEST['openid_identity']; 
     $_SESSION['openid']['delegate'] = $_REQUEST['openid_claimed_id'];
+    // TODO: This needs to be verified by perfoming discovery on the url
    } else {
      error('diffid', 'Identity provider validated wrong identity. Expected it to '
   	             . 'validate ' . $_SESSION['openid']['delegate'] . ' but it '

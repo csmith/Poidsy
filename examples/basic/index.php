@@ -47,6 +47,14 @@
   // Secondly, if the user is being redirected back from their provider, the
   // openid.mode parameter will be present (which PHP translates to openid_mode)
 
+  if (isset($_POST['openid_type']) && $_POST['openid_type'] != 'openid_url') {
+   // This allows users to select one of the pre-defined identity providers
+   // using the provided radio buttons. The values of the radio buttons specify
+   // an URL on which we can perform Yadis discovery to find the OpenID
+   // endpoint.
+   define('OPENID_URL', $_POST['openid_type']);
+  }
+
   require('../../processor.php');
 
  } else {
@@ -62,6 +70,7 @@
   <style type="text/css">
    input#openid_url {
     background: url('../../openid.gif') no-repeat; padding-left: 20px;
+    margin: 5px 0px 0px 40px;
    }
 
    p { padding-left: 10px; }
@@ -69,6 +78,9 @@
    p.succ { border-left: 10px solid #0f0; }
    caption { text-align: left; } 
    table { margin: 10px; }
+
+   ul { list-style-type: none; }
+   input[type="radio"] { width: 20px; }
   </style>
  </head>
  <body>
@@ -118,7 +130,12 @@
 ?>
   <form action="<?PHP echo htmlentities($_SERVER['REQUEST_URI']); ?>"
 	method="post">
-   <input type="text" name="openid_url" id="openid_url">
+   <ul>
+    <li><label><input type="radio" name="openid_type" value="gmail.com"> <img src="google.png" alt="Google"> Log in with my Google account</label></li>
+    <li><label><input type="radio" name="openid_type" value="yahoo.com"> <img src="yahoo.png" alt="Yahoo!"> Log in with my Yahoo! account</label></li>
+    <li><label><input type="radio" name="openid_type" value="openid_url" checked="checked"> Log in with another OpenID identity:</label> <br>
+        <input type="text" name="openid_url" id="openid_url"></li>
+   </ul>
    <input type="submit" value="Login">
   </form>
  </body>
