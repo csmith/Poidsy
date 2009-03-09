@@ -169,7 +169,13 @@ class Discoverer {
  }
 
  private function parseYadisHTML($data) {
-  $links = self::getLinks($data); 
+  $meta = self::getMetaTags($data); 
+
+  if (isset($meta['x-xrds-location'])) {
+   return $this->yadisDiscover($meta['x-xrds-location'], false);
+  }
+
+  return false;
  }
 
  private function htmlDiscover($uri) {
@@ -233,7 +239,7 @@ class Discoverer {
     $href = implode('', $m);
    }
 
-   $links[$rel] = html_entity_decode($href);
+   $links[strtolower($rel)] = html_entity_decode($href);
   }
 
   return $links;
