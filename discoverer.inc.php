@@ -115,7 +115,7 @@ class Discoverer {
  private function yadisDiscover($uri, $allowLocation = true) {
   $ctx = stream_context_create(array(
     'http' => array(
-      'header' => array("Accept: application/xrds+xml\r\n"),
+      'header' => "Accept: application/xrds+xml\r\n",
     )
   ));
 
@@ -154,13 +154,22 @@ class Discoverer {
    return false;
   }
 
-  foreach ($sxml->xrd->service as $service) {
-   // TODO: Meh
+  var_dump($sxml);
+  foreach ($sxml->XRD->Service as $service) {
+   if ((String) $service->Type == 'http://specs.openid.net/auth/2.0/server') {
+
+    return true;
+   } else if ((String) $service->Type == 'http://specs.openid.net/auth/2.0/signon') {
+
+    return true;
+   }
   }
+
+  return false;
  }
 
  private function parseYadisHTML($data) {
-  // TODO: Implement me
+  $links = self::getLinks($data); 
  }
 
  private function htmlDiscover($uri) {
@@ -198,26 +207,40 @@ class Discoverer {
   $this->parseHtml($data);
  }
 
- public function parseHtml($data) {
-  preg_match_all('#<link\s*(.*?)\s*/?>#is', $data, $matches);
+ protected static function getLinks($data) {
+  return self::getTags($data, 'link', 'rel', 'href');
+ }
+
+ protected static function getMetaTags($data) {
+  return self::getTags($data, 'meta', 'http-equiv', 'content');
+ }
+
+ protected static function getTags($data, $tag, $att1, $att2) {
+  preg_match_all('#<' . $tag . '\s*(.*?)\s*/?' . '>#is', $data, $matches);
 
   $links = array();
 
   foreach ($matches[1] as $link) {
    $rel = $href = null;
 
-   if (preg_match('#rel\s*=\s*(?:([^"\'>\s]*)|"([^">]*)"|\'([^\'>]*)\')(?:\s|$)#is', $link, $m)) {
-   	array_shift($m);
+   if (preg_match('#' . $att1 . '\s*=\s*(?:([^"\'>\s]*)|"([^">]*)"|\'([^\'>]*)\')(?:\s|$)#is', $link, $m)) {
+    array_shift($m);
     $rel = implode('', $m);
    }
 
-   if (preg_match('#href\s*=\s*(?:([^"\'>\s]*)|"([^">]*)"|\'([^\'>]*)\')(?:\s|$)#is', $link, $m)) {
-   	array_shift($m);
+   if (preg_match('#' . $att2 . '\s*=\s*(?:([^"\'>\s]*)|"([^">]*)"|\'([^\'>]*)\')(?:\s|$)#is', $link, $m)) {
+    array_shift($m);
     $href = implode('', $m);
    }
 
    $links[$rel] = html_entity_decode($href);
   }
+
+  return $links;
+ }
+
+ public function parseHtml($data) {
+  $links = self::getLinks($data);
 
   if (isset($links['openid2.provider'])) {
    $this->version = 2;
