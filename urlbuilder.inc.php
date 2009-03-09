@@ -62,7 +62,7 @@
     'openid.mode' => 'checkid_' . $type,
     'openid.identity' => $delegate,
     'openid.claimed_id' => $identity,
-    'openid.trust_root' => self::getTrustRoot($returnURL),
+    ($version == 1 ? 'openid.trust_root' : 'openid.realm') => self::getTrustRoot($returnURL),
     'openid.return_to' => self::addArguments($returnURL,
 		array('openid.nonce' => $_SESSION['openid']['nonce']))
    );
