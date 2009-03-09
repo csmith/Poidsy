@@ -26,7 +26,10 @@
 
  class URLBuilder {
 
-  const NAMESPACE = 'http://openid.net/signon/1.1';
+  private static $namespace = array(
+   1 => 'http://openid.net/signon/1.1',
+   2 => 'http://specs.openid.net/auth/2.0'
+  );
 
   public static function addArguments($base, $arguments) {
    $first = true;
@@ -53,9 +56,9 @@
    return $res;
   }
 
-  public static function buildRequest($type, $base, $delegate, $identity, $returnURL, $handle) {
+  public static function buildRequest($type, $base, $delegate, $identity, $returnURL, $handle, $version = 1) {
    $args = array(
-    'openid.ns' => self::NAMESPACE,
+    'openid.ns' => self::$namespace[$version],
     'openid.mode' => 'checkid_' . $type,
     'openid.identity' => $delegate,
     'openid.claimed_id' => $identity,
@@ -105,9 +108,9 @@
    }
   }
 
-  public static function buildAssociate($server) {
+  public static function buildAssociate($server, $version = 1) {
    $args = array(
-        'openid.ns' => self::NAMESPACE,
+        'openid.ns' => self::$namespace[$version],
 	'openid.mode' => 'associate',
 	'openid.assoc_type' => 'HMAC-SHA1',
    );
@@ -124,9 +127,9 @@
    return self::addArguments(false, $args);
   }
 
-  public static function buildAuth($params) {
+  public static function buildAuth($params, $version = 1) {
    $args = array(
-        'openid.ns' => self::NAMESPACE,
+        'openid.ns' => self::$namespace[$version],
 	'openid.mode' => 'check_authentication'
    );
 
