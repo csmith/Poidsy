@@ -25,18 +25,23 @@
 class Discoverer {
 
  private $server = null;
+ private $servers = array();
  private $delegate = '';
  private $identity = '';
  private $version = 1;
 
- public function __construct($uri) {
+ public function __construct($uri, $normalise = true) {
   if ($uri !== null) {
-   $this->discover($this->identity = $this->normalise($uri));
+   $this->discover($this->identity = ($normalise ? $this->normalise($uri) : $uri));
   }
  }
 
  public function getServer() {
   return $this->server;
+ }
+
+ public function hasServer($server) {
+  return array_search($server, $this->servers) !== false;
  }
 
  public function getDelegate() {
@@ -155,15 +160,18 @@ class Discoverer {
   }
 
   // TODO: Better handling of namespaces
+  $found = false;
   foreach ($sxml->XRD->Service as $service) {
    if ((String) $service->Type == 'http://specs.openid.net/auth/2.0/server') {
     $this->version = 2;
     $this->server = (String) $service->URI;
     $this->identity = $this->delegate = 'http://specs.openid.net/auth/2.0/identifier_select';
-    return true;
+    $this->servers[] = $this->server;
+    $found = true;
    } else if ((String) $service->Type == 'http://specs.openid.net/auth/2.0/signon') {
     $this->version = 2;
     $this->server = (String) $service->URI;
+    $this->servers[] = $this->server;
 
     if (isset($service->LocalID)) {
      $this->identity = (String) $service->LocalID;
@@ -172,11 +180,11 @@ class Discoverer {
     }
     $this->delegate = 'http://specs.openid.net/auth/2.0/identifier_select';
 
-    return true;
+    $found = true;
    }
   }
 
-  return false;
+  return $found;
  }
 
  private function parseYadisHTML($data) {
@@ -263,6 +271,7 @@ class Discoverer {
   if (isset($links['openid2.provider'])) {
    $this->version = 2;
    $this->server = $links['openid2.provider'];
+   $this->servers[] = $this->server;
 
    if (isset($links['openid2.local_id'])) {
     $this->delegate = $links['openid2.local_id'];
@@ -270,6 +279,7 @@ class Discoverer {
   } else if (isset($links['openid.server'])) {
    $this->version = 1;
    $this->server = $links['openid.server'];
+   $this->servers[] = $this->server;
 
    if (isset($links['openid.delegate'])) {
     $this->delegate = $links['openid.delegate'];

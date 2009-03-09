@@ -244,9 +244,14 @@
  function processPositiveResponse($valid) {
   if ($_REQUEST['openid_identity'] != $_SESSION['openid']['delegate']) {
    if ($_SESSION['openid']['delegate'] == 'http://specs.openid.net/auth/2.0/identifier_select') {
-    $_SESSION['openid']['identity'] = $_REQUEST['openid_identity']; 
-    $_SESSION['openid']['delegate'] = $_REQUEST['openid_claimed_id'];
-    // TODO: This needs to be verified by perfoming discovery on the url
+    $disc = new Discoverer($_REQUEST['openid_claimed_id'], false);
+ 
+    if ($disc->hasServer($_SESSION['openid']['server'])) {
+     $_SESSION['openid']['identity'] = $_REQUEST['openid_identity']; 
+     $_SESSION['openid']['delegate'] = $_REQUEST['openid_claimed_id'];
+    } else {
+     error('diffid', 'The OP at ' . $_SESSION['openid']['server'] . ' is attmpting to claim ' . $_REQUEST['openid_claimed_id'] . ' but ' . ($disc->getServer() == null ? 'that isn\'t a valid identifier' : 'that identifier only authorises ' . $disc->getServer()));
+    }
    } else {
      error('diffid', 'Identity provider validated wrong identity. Expected it to '
   	             . 'validate ' . $_SESSION['openid']['delegate'] . ' but it '
