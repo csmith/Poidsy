@@ -70,6 +70,7 @@
    $_SESSION['openid'] = array(
  	'identity' => $disc->getIdentity(),
 	'delegate' => $disc->getDelegate(),
+	'version' => $disc->getVersion(),
 	'validated' => false,
 	'server' => $disc->getServer(),
 	'nonce' => uniqid(microtime(true), true),
@@ -80,7 +81,7 @@
 
    $url = URLBuilder::buildRequest(defined('OPENID_IMMEDIATE') ? 'immediate' : 'setup',
               $disc->getServer(), $disc->getDelegate(),
-              $disc->getIdentity(), URLBuilder::getCurrentURL(), $handle);
+              $disc->getIdentity(), URLBuilder::getCurrentURL(), $handle, $disc->getVersion());
 
    URLBuilder::doRedirect($url);
   } else if (isset($_REQUEST['openid_mode'])) {
@@ -137,7 +138,7 @@
    $disc = new Discoverer($url);
 
    if ($disc->getServer() == null) {
-   	error('notvalid', 'Claimed identity is not a valid identifier');
+    error('notvalid', 'Claimed identity is not a valid identifier');
    }
 
    return $disc;
@@ -242,9 +243,13 @@
   */
  function processPositiveResponse($valid) {
   if ($_REQUEST['openid_identity'] != $_SESSION['openid']['delegate']) {
-   error('diffid', 'Identity provider validated wrong identity. Expected it to '
+   if ($_SESSION['openid']['delegate'] == 'http://specs.openid.net/auth/2.0/identifier_select') {
+    $_SESSION['openid']['delegate'] = $_REQUEST['openid_identity']; 
+   } else {
+     error('diffid', 'Identity provider validated wrong identity. Expected it to '
   	             . 'validate ' . $_SESSION['openid']['delegate'] . ' but it '
   	             . 'validated ' . $_REQUEST['openid_identity']);
+   }
   }
 
   if (!$valid) {
