@@ -26,6 +26,8 @@
 
  class URLBuilder {
 
+  const MIN_VERSION_FOR_NS = 2;
+
   private static $namespace = array(
    1 => 'http://openid.net/signon/1.1',
    2 => 'http://specs.openid.net/auth/2.0'
@@ -58,7 +60,6 @@
 
   public static function buildRequest($type, $base, $delegate, $identity, $returnURL, $handle, $version = 1) {
    $args = array(
-    'openid.ns' => self::$namespace[$version],
     'openid.mode' => 'checkid_' . $type,
     'openid.identity' => $delegate,
     'openid.claimed_id' => $identity,
@@ -66,6 +67,10 @@
     'openid.return_to' => self::addArguments($returnURL,
 		array('openid.nonce' => $_SESSION['openid']['nonce']))
    );
+
+   if ($version >= self::MIN_VERSION_FOR_NS) {
+    $args['openid.ns'] = self::$namespace[$version];
+   }
 
    if ($handle !== null) {
     $args['openid.assoc_handle'] = $handle;
@@ -110,10 +115,13 @@
 
   public static function buildAssociate($server, $version = 1) {
    $args = array(
-        'openid.ns' => self::$namespace[$version],
 	'openid.mode' => 'associate',
 	'openid.assoc_type' => 'HMAC-SHA1',
    );
+
+   if ($version >= self::MIN_VERSION_FOR_NS) {
+    $args['openid.ns'] = self::$namespace[$version];
+   }
 
    if (KeyManager::supportsDH()) {
     $args['openid.session_type'] = 'DH-SHA1';
@@ -129,9 +137,12 @@
 
   public static function buildAuth($params, $version = 1) {
    $args = array(
-        'openid.ns' => self::$namespace[$version],
 	'openid.mode' => 'check_authentication'
    );
+
+   if ($version >= self::MIN_VERSION_FOR_NS) {
+    $args['openid.ns'] = self::$namespace[$version];
+   }
 
    $toadd = array('assoc_handle', 'sig', 'signed');
    $toadd = array_merge($toadd, explode(',', $params['openid_signed']));
