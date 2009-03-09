@@ -135,7 +135,7 @@
 
    foreach ($toadd as $arg) {
     if (!isset($args['openid.' . $arg])) {
-     $args['openid.' . $arg] = $params['openid_' . $arg];
+     $args['openid.' . $arg] = $params['openid_' . str_replace('.', '_', $arg)];
     }
    }
 
