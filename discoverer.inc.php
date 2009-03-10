@@ -22,6 +22,41 @@
  * SOFTWARE.
  */
 
+class Server {
+
+ private $url = null;
+ private $version = 1;
+ private $services = array();
+
+ public function __construct($url, $version) {
+  $this->url = $url;
+  $this->version = $version;
+ }
+
+ public function getURL() {
+  return $this->url;
+ }
+
+ public function getVersion() {
+  return $this->version;
+ }
+
+ public function getServices() {
+  return $this->services;
+ }
+
+ public function addServices($services) {
+  foreach ($services as $service) {
+   $this->services[] = $service;
+  }
+ }
+
+ public function hasService($service) {
+  return array_search($service, $this->services) !== false;
+ }
+
+}
+
 class Discoverer {
 
  private $server = null;
@@ -41,7 +76,13 @@ class Discoverer {
  }
 
  public function hasServer($server) {
-  return array_search($server, $this->servers) !== false;
+  foreach ($this->servers as $match) {
+   if ($match->getURL() == $server) { 
+    return true;
+   }
+  }
+  
+  return false;
  }
 
  public function getDelegate() {
@@ -162,25 +203,36 @@ class Discoverer {
   // TODO: Better handling of namespaces
   $found = false;
   foreach ($sxml->XRD->Service as $service) {
-   if ((String) $service->Type == 'http://specs.openid.net/auth/2.0/server') {
-    $this->version = 2;
-    $this->server = (String) $service->URI;
-    $this->identity = $this->delegate = 'http://specs.openid.net/auth/2.0/identifier_select';
-    $this->servers[] = $this->server;
-    $found = true;
-   } else if ((String) $service->Type == 'http://specs.openid.net/auth/2.0/signon') {
-    $this->version = 2;
-    $this->server = (String) $service->URI;
-    $this->servers[] = $this->server;
+   $services = array();
+   $server = null;
 
-    if (isset($service->LocalID)) {
-     $this->identity = (String) $service->LocalID;
+   foreach ($service->Type as $type) {
+    if ((String) $type == 'http://specs.openid.net/auth/2.0/server') {
+     $this->version = 2;
+     $this->server = (String) $service->URI;
+     $this->identity = $this->delegate = 'http://specs.openid.net/auth/2.0/identifier_select';
+     $this->servers[] = $server = new Server($this->server, 2);
+     $found = true;
+    } else if ((String) $type == 'http://specs.openid.net/auth/2.0/signon') {
+     $this->version = 2;
+     $this->server = (String) $service->URI;
+     $this->servers[] = $server = new Server($this->server, 2);
+
+     if (isset($service->LocalID)) {
+      $this->identity = (String) $service->LocalID;
+     } else {
+      $this->identity = 'http://specs.openid.net/auth/2.0/identifier_select';
+     }
+     $this->delegate = 'http://specs.openid.net/auth/2.0/identifier_select';
+  
+     $found = true;
     } else {
-     $this->identity = 'http://specs.openid.net/auth/2.0/identifier_select';
+     $services[] = (String) $type;
     }
-    $this->delegate = 'http://specs.openid.net/auth/2.0/identifier_select';
+   }
 
-    $found = true;
+   if ($server != null) {
+    $server->addServices($services);
    }
   }
 
@@ -271,7 +323,7 @@ class Discoverer {
   if (isset($links['openid2.provider'])) {
    $this->version = 2;
    $this->server = $links['openid2.provider'];
-   $this->servers[] = $this->server;
+   $this->servers[] = new Server($this->server, 2);
 
    if (isset($links['openid2.local_id'])) {
     $this->delegate = $links['openid2.local_id'];
@@ -279,7 +331,7 @@ class Discoverer {
   } else if (isset($links['openid.server'])) {
    $this->version = 1;
    $this->server = $links['openid.server'];
-   $this->servers[] = $this->server;
+   $this->servers[] = new Server($this->server, 2);
 
    if (isset($links['openid.delegate'])) {
     $this->delegate = $links['openid.delegate'];
