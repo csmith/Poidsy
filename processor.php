@@ -1,7 +1,7 @@
 <?PHP
 
-/* Poidsy 0.4 - http://chris.smith.name/projects/poidsy
- * Copyright (c) 2008 Chris Smith
+/* Poidsy 0.5 - http://chris.smith.name/projects/poidsy
+ * Copyright (c) 2008-2009 Chris Smith
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,9 +21,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
- // TODO: Remove me before release!
- error_reporting(E_ALL | E_STRICT);
 
  require_once(dirname(__FILE__) . '/discoverer.inc.php');
  require_once(dirname(__FILE__) . '/poster.inc.php');

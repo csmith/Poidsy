@@ -1,7 +1,7 @@
 <?PHP
 
-/* Poidsy 0.4 - http://chris.smith.name/projects/poidsy
- * Copyright (c) 2008 Chris Smith
+/* Poidsy 0.5 - http://chris.smith.name/projects/poidsy
+ * Copyright (c) 2008-2009 Chris Smith
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
