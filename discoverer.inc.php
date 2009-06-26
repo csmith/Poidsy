@@ -22,6 +22,8 @@
  * SOFTWARE.
  */
 
+require_once(dirname(__FILE__) . '/logging.inc.php');
+
 class Server {
 
  private $url = null;
@@ -150,6 +152,8 @@ class Discoverer {
  }
 
  private function discover($uri) {
+  Logger::log('Performing discovery for %s', $uri);
+
   $this->delegate = $uri;
   $this->server = null;
 
@@ -159,6 +163,8 @@ class Discoverer {
  }
 
  private function yadisDiscover($uri, $allowLocation = true) {
+  Logger::log('Attempting Yadis discovery on %s', $uri);
+
   $ctx = stream_context_create(array(
     'http' => array(
       'header' => "Accept: application/xrds+xml\r\n",
@@ -168,6 +174,7 @@ class Discoverer {
   $fh = @fopen($uri, 'r', false, $ctx);
 
   if (!$fh) {
+   Logger::log('Unable to open stream');
    return false;
   }
 
@@ -196,6 +203,7 @@ class Discoverer {
   $sxml = @new SimpleXMLElement($data); 
 
   if (!$sxml) {
+   Logger::log('Failed to parse XRDS data as XML');
    // TODO: Die somehow?
    return false;
   }
@@ -207,11 +215,14 @@ class Discoverer {
    $server = null;
 
    foreach ($service->Type as $type) {
+    Logger::log('Found service of type %s', $type);
+
     if ((String) $type == 'http://specs.openid.net/auth/2.0/server') {
      $this->version = 2;
      $this->server = (String) $service->URI;
      $this->identity = $this->delegate = 'http://specs.openid.net/auth/2.0/identifier_select';
      $this->servers[] = $server = new Server($this->server, 2);
+     Logger::log('OpenID EP found (server). Server: %s, identity: %s, delegate: %s', $this->server, $this->identity, $this->delegate);
      $found = true;
     } else if ((String) $type == 'http://specs.openid.net/auth/2.0/signon') {
      $this->version = 2;
@@ -224,7 +235,8 @@ class Discoverer {
       $this->identity = 'http://specs.openid.net/auth/2.0/identifier_select';
      }
      $this->delegate = 'http://specs.openid.net/auth/2.0/identifier_select';
-  
+
+     Logger::log('OpenID EP found (signon). Server: %s, identity: %s, delegate: %s', $this->server, $this->identity, $this->delegate);  
      $found = true;
     } else {
      $services[] = (String) $type;
@@ -243,6 +255,7 @@ class Discoverer {
   $meta = self::getMetaTags($data); 
 
   if (isset($meta['x-xrds-location'])) {
+   Logger::log('Found XRDS meta tag: %s', $meta['x-xrds-location']);
    // TODO: Allow relative URLs?
    return $this->yadisDiscover($meta['x-xrds-location'], false);
   }
@@ -251,9 +264,12 @@ class Discoverer {
  }
 
  private function htmlDiscover($uri) {
+  Logger::log('Performing HTML discovery on %s', $uri);
+
   $fh = @fopen($uri, 'r');
 
   if (!$fh) {
+   Logger::log('Unable to open stream');
    return;
   }
 
@@ -274,6 +290,8 @@ class Discoverer {
    }
    $this->identity = self::normalise($this->identity);
   }
+
+  Logger::log('Identity: %s', $this->identity);
 
   $data = '';
   while (!feof($fh) && strpos($data, '</head>') === false) {
@@ -328,6 +346,7 @@ class Discoverer {
    if (isset($links['openid2.local_id'])) {
     $this->delegate = $links['openid2.local_id'];
    }
+   Logger::log('OpenID EP found. Server: %s, identity: %s, delegate: %s', $this->server, $this->identity, $this->delegate);
   } else if (isset($links['openid.server'])) {
    $this->version = 1;
    $this->server = $links['openid.server'];
@@ -336,6 +355,7 @@ class Discoverer {
    if (isset($links['openid.delegate'])) {
     $this->delegate = $links['openid.delegate'];
    }
+   Logger::log('OpenID EP found. Server: %s, identity: %s, delegate: %s', $this->server, $this->identity, $this->delegate);
   }
  }
 
