@@ -22,6 +22,7 @@
  * SOFTWARE.
  */
 
+ require_once(dirname(__FILE__) . '/logging.inc.php');
  require_once(dirname(__FILE__) . '/discoverer.inc.php');
  require_once(dirname(__FILE__) . '/poster.inc.php');
  require_once(dirname(__FILE__) . '/sreg.inc.php');
@@ -60,6 +61,7 @@
  function process() {
   if (defined('OPENID_URL')) {
    // Initial authentication attempt (they just entered their identifier)
+   Logger::log('Processing authentication attempt for %s', OPENID_URL);
 
    $reqs = checkRequests();
    $disc = tryDiscovery(OPENID_URL);
@@ -87,7 +89,7 @@
    $func = 'process' . str_replace(' ', '', ucwords(str_replace('_', ' ',
 			strtolower($_REQUEST['openid_mode']))));
    if (function_exists($func)) {
-  	 call_user_func($func, checkHandleRevocation());
+    call_user_func($func, checkHandleRevocation());
    }
   }
  }
@@ -112,6 +114,8 @@
 
   } else if ($requests['count'] > OPENID_THROTTLE_NUM) {
 
+   Logger::log('Client throttled: %s requests made', $requests['count']);
+
    // More than the legal number of requests
    error('throttled', 'You are trying to authenticate too often');
 
@@ -135,11 +139,13 @@
    $disc = new Discoverer($url);
 
    if ($disc->getServer() == null) {
+    Logger::log('Couldn\'t perform discovery on %s', $url);
     error('notvalid', 'Claimed identity is not a valid identifier');
    }
 
    return $disc;
   } catch (Exception $e) {
+   Logger::log('Error during discovery on %s: %s', $url, $e->getMessage());
    error('discovery', $e->getMessage());
   }
   
@@ -194,7 +200,7 @@
    if ($valid) {
     KeyManager::removeKey($_SESSION['openid']['server'], $_REQUEST['openid_invalidate_handle']);
    } else {
-   	error('noauth', 'Provider didn\'t authenticate message');
+    error('noauth', 'Provider didn\'t authenticate message');
    }
   }
 
@@ -239,8 +245,10 @@
   * @param Boolean $valid True if the request has already been authenticated
   */
  function processPositiveResponse($valid) {
-  if ($_REQUEST['openid_identity'] != $_SESSION['openid']['delegate']) {
-   if ($_SESSION['openid']['delegate'] == 'http://specs.openid.net/auth/2.0/identifier_select') {
+  Logger::log('Positive response: identity = %s, expected = %s', $_REQUEST['openid_identity'], $_SESSION['openid']['identity']);
+
+  if ($_REQUEST['openid_identity'] != $_SESSION['openid']['identity']) {
+   if ($_SESSION['openid']['identity'] == 'http://specs.openid.net/auth/2.0/identifier_select') {
     $disc = new Discoverer($_REQUEST['openid_claimed_id'], false);
  
     if ($disc->hasServer($_SESSION['openid']['server'])) {

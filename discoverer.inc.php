@@ -63,7 +63,7 @@ class Discoverer {
 
  private $server = null;
  private $servers = array();
- private $delegate = '';
+ private $claimedId = '';
  private $identity = '';
  private $version = 1;
 
@@ -88,7 +88,7 @@ class Discoverer {
  }
 
  public function getDelegate() {
-  return $this->delegate;
+  return $this->claimedId;
  }
 
  public function getIdentity() {
@@ -154,7 +154,7 @@ class Discoverer {
  private function discover($uri) {
   Logger::log('Performing discovery for %s', $uri);
 
-  $this->delegate = $uri;
+  $this->claimedId = $uri;
   $this->server = null;
 
   if (!$this->yadisDiscover($uri)) {
@@ -220,9 +220,9 @@ class Discoverer {
     if ((String) $type == 'http://specs.openid.net/auth/2.0/server') {
      $this->version = 2;
      $this->server = (String) $service->URI;
-     $this->identity = $this->delegate = 'http://specs.openid.net/auth/2.0/identifier_select';
+     $this->identity = 'http://specs.openid.net/auth/2.0/identifier_select';
      $this->servers[] = $server = new Server($this->server, 2);
-     Logger::log('OpenID EP found (server). Server: %s, identity: %s, delegate: %s', $this->server, $this->identity, $this->delegate);
+     Logger::log('OpenID EP found (server). Server: %s, identity: %s, claimed id: %s', $this->server, $this->identity, $this->claimedId);
      $found = true;
     } else if ((String) $type == 'http://specs.openid.net/auth/2.0/signon') {
      $this->version = 2;
@@ -234,9 +234,8 @@ class Discoverer {
      } else {
       $this->identity = 'http://specs.openid.net/auth/2.0/identifier_select';
      }
-     $this->delegate = 'http://specs.openid.net/auth/2.0/identifier_select';
 
-     Logger::log('OpenID EP found (signon). Server: %s, identity: %s, delegate: %s', $this->server, $this->identity, $this->delegate);  
+     Logger::log('OpenID EP found (signon). Server: %s, identity: %s, claimed id: %s', $this->server, $this->identity, $this->claimedId); 
      $found = true;
     } else {
      $services[] = (String) $type;
@@ -344,18 +343,18 @@ class Discoverer {
    $this->servers[] = new Server($this->server, 2);
 
    if (isset($links['openid2.local_id'])) {
-    $this->delegate = $links['openid2.local_id'];
+    $this->identity = $links['openid2.local_id'];
    }
-   Logger::log('OpenID EP found. Server: %s, identity: %s, delegate: %s', $this->server, $this->identity, $this->delegate);
+   Logger::log('OpenID EP found. Server: %s, identity: %s, claimed id: %s', $this->server, $this->identity, $this->claimedId);
   } else if (isset($links['openid.server'])) {
    $this->version = 1;
    $this->server = $links['openid.server'];
    $this->servers[] = new Server($this->server, 2);
 
    if (isset($links['openid.delegate'])) {
-    $this->delegate = $links['openid.delegate'];
+    $this->claimedId = $links['openid.claimedId'];
    }
-   Logger::log('OpenID EP found. Server: %s, identity: %s, delegate: %s', $this->server, $this->identity, $this->delegate);
+   Logger::log('OpenID EP found. Server: %s, identity: %s, claimed id: %s', $this->server, $this->identity, $this->claimedId);
   }
  }
 
