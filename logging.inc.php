@@ -26,6 +26,7 @@ class Logger {
 
  const ENABLE_LOGGING = true;
  const LOGGING_FILENAME = '/tmp/poidsy-debug.log';
+ const TRUNCATE_ARGS = true;
 
  private static $fh;
 
@@ -44,7 +45,17 @@ class Logger {
  protected static function getCaller() {
   $trace = debug_backtrace(); // First two will be log and getCaller
   $trace = $trace[2];
+
+  array_walk($trace['args'], array('Logger', 'formatArg'));
+
   return sprintf('%s:%s %s%s%s(%s)', basename($trace['file']), $trace['line'], $trace['class'], $trace['type'], $trace['function'], implode(', ', $trace['args']));
+ }
+
+ protected static function formatArg(&$value, $key) {
+  if (strlen($value) > 30 && self::TRUNCATE_ARGS) {
+   $value = substr($value, 0, 27) . '...';
+  }
+  $value = str_replace("\n", '  ', $value);
  }
 
 }
