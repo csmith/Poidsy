@@ -352,7 +352,8 @@ class Discoverer {
    $this->servers[] = new Server($this->server, 2);
 
    if (isset($links['openid.delegate'])) {
-    $this->claimedId = $links['openid.claimedId'];
+    $this->claimedId = $this->identity;
+    $this->identity = $links['openid.delegate'];
    }
    Logger::log('OpenID EP found. Server: %s, identity: %s, claimed id: %s', $this->server, $this->identity, $this->claimedId);
   }
