@@ -95,22 +95,32 @@
  }
 
  /**
+  * Retrieves or creates the 'requests' session array, which tracks the number
+  * of authentication attempts the user has made recently.
+  *
+  * @return An array (by reference) containing details about recent requests
+  */
+ function &getRequests() {
+  if (!isset($_SESSION['openid']['requests'])) {
+   $_SESSION['openid']['requests'] = array('lasttime' => 0, 'count' => 0);
+  }
+
+  return $_SESSION['openid']['requests'];
+ }
+
+ /**
   * Checks that the user isn't making requests too frequently, and redirects
   * them with an appropriate error if they are.
   *
   * @return An array containing details about the requests that have been made
   */
- function checkRequests() {
-  if (isset($_SESSION['openid']['requests'])) {
-   $requests = $_SESSION['openid']['requests'];
-  } else {
-   $requests = array('lasttime' => 0, 'count' => 0);
-  }
+ function &checkRequests() {
+  $requests = getRequests();
 
   if ($requests['lasttime'] < time() - OPENID_THROTTLE_GAP) {
 
    // Last request was a while ago, reset the timer
-   $requests['count'] = 0;
+   resetRequests(); 
 
   } else if ($requests['count'] > OPENID_THROTTLE_NUM) {
 
@@ -123,6 +133,25 @@
 
   $requests['count']++;
   $requests['lasttime'] = time();
+
+  return $requests;
+ }
+
+ /**
+  * Resets the recent requests counter (for example, after the required time
+  * has ellapsed, or after the user has successfully logged in).
+  *
+  * @param $decrement If true, the count will be decremented instead of cleared
+  * @return A copy of the requests array
+  */
+ function &resetRequests($decrement = false) {
+  $requests = getRequests();
+
+  if ($decrement) {
+   $requests['count'] = max($requests['count'] - 1, 0);
+  } else {
+   $requests['count'] = 0;
+  }
 
   return $requests;
  }
@@ -254,6 +283,7 @@
     if ($disc->hasServer($_SESSION['openid']['server'])) {
      $_SESSION['openid']['identity'] = $_REQUEST['openid_identity']; 
      $_SESSION['openid']['delegate'] = $_REQUEST['openid_claimed_id'];
+     resetRequests(true);
     } else {
      error('diffid', 'The OP at ' . $_SESSION['openid']['server'] . ' is attmpting to claim ' . $_REQUEST['openid_claimed_id'] . ' but ' . ($disc->getServer() == null ? 'that isn\'t a valid identifier' : 'that identifier only authorises ' . $disc->getServer()));
     }
@@ -288,7 +318,7 @@
   }
 
   parseSRegResponse();
-  URLBuilder::redirect(); 	
+  URLBuilder::redirect(); 
  }
 
  /**
