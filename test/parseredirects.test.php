@@ -22,7 +22,7 @@
   $output = $url . $output;
   $url = $url . $input;
   $disc = new Discoverer($url);
-  $aoutput = $disc->getIdentity();
+  $aoutput = $disc->getClaimedId();
   $result = $aoutput == $output;
 
   echo '<tr><td><a href="', htmlentities($url), '">', htmlentities($input), '</a></td>';

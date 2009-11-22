@@ -61,38 +61,35 @@ class Server {
 
 class Discoverer {
 
- private $server = null;
- private $servers = array();
- private $claimedId = '';
- private $identity = '';
- private $version = 1;
+ const ID_SELECT_URL = 'http://specs.openid.net/auth/2.0/identifier_select';
+
+ private $version;        // OpenID 2 teminology   || OpenID 1 terminology
+                          // --------------------- || ----------------------
+ private $userSuppliedId; // User supplied ID      || [Same as Claimed ID]
+ private $claimedId;      // Claimed ID            || Claimed ID
+ private $endpointUrl;    // OP Endpoint URL       || Identity Provider
+ private $opLocalId;      // OP-local ID           || Delegate
 
  public function __construct($uri, $normalise = true) {
   if ($uri !== null) {
-   $this->discover($this->identity = ($normalise ? $this->normalise($uri) : $uri));
+   $this->discover($this->userSuppliedId = ($normalise ? $this->normalise($uri) : $uri));
   }
  }
 
- public function getServer() {
-  return $this->server;
+ public function getEndpointUrl() {
+  return $this->endpointUrl;
  }
 
- public function hasServer($server) {
-  foreach ($this->servers as $match) {
-   if ($match->getURL() == $server) { 
-    return true;
-   }
-  }
-  
-  return false;
+ public function getUserSuppliedId() {
+  return $this->userSuppliedId;
  }
 
- public function getDelegate() {
+ public function getClaimedId() {
   return $this->claimedId;
  }
 
- public function getIdentity() {
-  return $this->identity;
+ public function getOpLocalId() {
+  return $this->opLocalId;
  }
 
  public function getVersion() {
@@ -153,9 +150,6 @@ class Discoverer {
 
  private function discover($uri) {
   Logger::log('Performing discovery for %s', $uri);
-
-  $this->claimedId = $uri;
-  $this->server = null;
 
   if (!$this->yadisDiscover($uri)) {
    $this->htmlDiscover($uri);
@@ -220,7 +214,7 @@ class Discoverer {
     if ((String) $type == 'http://specs.openid.net/auth/2.0/server') {
      $this->version = 2;
      $this->server = (String) $service->URI;
-     $this->identity = 'http://specs.openid.net/auth/2.0/identifier_select';
+     $this->identity = self::ID_SELECT_URL; 
      $this->servers[] = $server = new Server($this->server, 2);
      Logger::log('OpenID EP found (server). Server: %s, identity: %s, claimed id: %s', $this->server, $this->identity, $this->claimedId);
      $found = true;
@@ -232,7 +226,7 @@ class Discoverer {
      if (isset($service->LocalID)) {
       $this->identity = (String) $service->LocalID;
      } else {
-      $this->identity = 'http://specs.openid.net/auth/2.0/identifier_select';
+      $this->identity = self::ID_SELECT_URL; 
      }
 
      Logger::log('OpenID EP found (signon). Server: %s, identity: %s, claimed id: %s', $this->server, $this->identity, $this->claimedId); 
@@ -272,25 +266,27 @@ class Discoverer {
    return;
   }
 
+  $this->claimedId = $uri;
+
   $details = stream_get_meta_data($fh);
 
   foreach ($details['wrapper_data'] as $line) {
    if (preg_match('/^Location: (.*?)$/i', $line, $m)) {
     if (strpos($m[1], '://') !== false) {
      // Fully qualified URL
-     $this->identity = $m[1];
+     $this->claimedId = $m[1];
     } else if ($m[1][0] == '/') {
      // Absolute URL
-     $this->identity = preg_replace('#^(.*?://.*?)/.*$#', '\1', $this->identity) . $m[1];
+     $this->claimedId = preg_replace('#^(.*?://.*?)/.*$#', '\1', $this->claimedId) . $m[1];
     } else {
      // Relative URL
-     $this->identity = preg_replace('#^(.*?://.*/).*?$#', '\1', $this->identity) . $m[1];
+     $this->claimedId = preg_replace('#^(.*?://.*/).*?$#', '\1', $this->claimedId) . $m[1];
     }
    }
-   $this->identity = self::normalise($this->identity);
+   $this->claimedId = self::normalise($this->claimedId);
   }
 
-  Logger::log('Identity: %s', $this->identity);
+  Logger::log('Claimed identity: %s', $this->claimedId);
 
   $data = '';
   while (!feof($fh) && strpos($data, '</head>') === false) {
@@ -339,23 +335,30 @@ class Discoverer {
 
   if (isset($links['openid2.provider'])) {
    $this->version = 2;
-   $this->server = $links['openid2.provider'];
-   $this->servers[] = new Server($this->server, 2);
+   $this->endpointUrl = $links['openid2.provider'];
+   //$this->servers[] = new Server($this->server, 2);
 
    if (isset($links['openid2.local_id'])) {
-    $this->identity = $links['openid2.local_id'];
+    $this->claimedId = $this->userSuppliedId;
+    $this->opLocalId = $links['openid2.local_id'];
+   } else {
+    $this->claimedId = self::ID_SELECT_URL;
+    $this->opLocalId = self::ID_SELECT_URL;
    }
-   Logger::log('OpenID EP found. Server: %s, identity: %s, claimed id: %s', $this->server, $this->identity, $this->claimedId);
+
+   Logger::log('OpenID EP found. End point: %s, claimed id: %s, op local id: %s', $this->endpointUrl, $this->claimedId, $this->opLocalId);
   } else if (isset($links['openid.server'])) {
    $this->version = 1;
-   $this->server = $links['openid.server'];
-   $this->servers[] = new Server($this->server, 2);
+   $this->endpointUrl = $links['openid.server'];
+   //$this->servers[] = new Server($this->server, 2);
+
+   $this->claimedId = $this->userSuppliedId;
 
    if (isset($links['openid.delegate'])) {
-    $this->claimedId = $this->identity;
-    $this->identity = $links['openid.delegate'];
+    $this->opLocalId = $links['openid.delegate'];
    }
-   Logger::log('OpenID EP found. Server: %s, identity: %s, claimed id: %s', $this->server, $this->identity, $this->claimedId);
+
+   Logger::log('OpenID EP found. End point: %s, claimed id: %s, op local id: %s', $this->endpointUrl, $this->claimedId, $this->opLocalId);
   }
  }
 

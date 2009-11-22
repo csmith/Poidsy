@@ -21,7 +21,7 @@
 
   $disc = new Discoverer(null);
   $disc->parseHtml(file_get_contents($input));
-  $aoutput = $disc->getVersion() . ':' . $disc->getServer() . ',' . $disc->getDelegate();
+  $aoutput = $disc->getVersion() . ':' . $disc->getEndpointUrl() . ',' . $disc->getOpLocalId();
   $result = $aoutput == $output;
 
   echo '<tr><td><a href="', htmlentities($input), '">', htmlentities($input), '</a></td>';
