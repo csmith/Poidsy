@@ -299,14 +299,14 @@ class Discoverer {
  }
 
  protected static function getLinks($data) {
-  return self::getTags($data, 'link', 'rel', 'href');
+  return self::getTags($data, 'link', 'rel', 'href', true);
  }
 
  protected static function getMetaTags($data) {
   return self::getTags($data, 'meta', 'http-equiv', 'content');
  }
 
- protected static function getTags($data, $tag, $att1, $att2) {
+ protected static function getTags($data, $tag, $att1, $att2, $split = false) {
   preg_match_all('#<' . $tag . '\s*(.*?)\s*/?' . '>#is', $data, $matches);
 
   $links = array();
@@ -324,7 +324,13 @@ class Discoverer {
     $href = implode('', $m);
    }
 
-   $links[strtolower($rel)] = html_entity_decode($href);
+   if ($split) {
+    foreach (explode(' ', strtolower($rel)) as $part) {
+     $links[$part] = html_entity_decode($href);
+    }
+   } else {
+    $links[strtolower($rel)] = html_entity_decode($href);
+   }
   }
 
   return $links;
