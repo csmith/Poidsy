@@ -287,11 +287,11 @@
      $_SESSION['openid']['identity'] = $_REQUEST['openid_identity']; 
      $_SESSION['openid']['opLocalId'] = $_REQUEST['openid_claimed_id'];
     } else {
-     error('diffid', 'The OP at ' . $_SESSION['openid']['endpointUrl'] . ' is attmpting to claim ' . $_REQUEST['openid_claimed_id'] . ' but ' . ($disc->getEndpointUrl() == null ? 'that isn\'t a valid identifier' : 'that identifier only authorises ' . $disc->getClaimedId()));
+     error('diffid', 'The OP at ' . $_SESSION['openid']['endpointUrl'] . ' is attmpting to claim ' . $_REQUEST['openid_claimed_id'] . ' but ' . ($disc->getEndpointUrl() == null ? 'that isn\'t a valid identifier' : 'that identifier only authorises ' . $disc->getEndpointUrl()));
     }
    } else {
      error('diffid', 'Identity provider validated wrong identity. Expected it to '
-	             . 'validate ' . $_SESSION['openid']['opLocalId'] . ' but it '
+	             . 'validate ' . $_SESSION['openid']['claimedId'] . ' but it '
   	             . 'validated ' . $_REQUEST['openid_identity']);
    }
   }

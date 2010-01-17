@@ -165,6 +165,10 @@ class Discoverer {
  private function yadisDiscover($uri, $allowLocation = true) {
   Logger::log('Attempting Yadis discovery on %s', $uri);
 
+  if ($allowLocation) {
+   $this->claimedId = $uri;
+  }
+
   $ctx = stream_context_create(array(
     'http' => array(
       'header' => "Accept: application/xrds+xml\r\n",
@@ -190,13 +194,18 @@ class Discoverer {
   foreach ($details['wrapper_data'] as $line) {
    if ($allowLocation && preg_match('/^X-XRDS-Location:\s*(.*?)$/i', $line, $m)) {
     // TODO: Allow relative URLs?
+    $this->handleRedirects($details);
     return $this->yadisDiscover($m[1], false);
    } else if (preg_match('#^Content-type:\s*application/xrds\+xml(;.*?)?$#i', $line)) {
+    $this->handleRedirects($details);
     return $this->parseYadis($data);
    }
   }
 
-  return $this->parseYadisHTML($data);
+  if (($url = $this->parseYadisHTML($data)) !== false) {
+   $this->handleRedirects($details);
+   return $this->yadisDiscover($url, false);
+  }
  }
 
  private function parseYadis($data) {
@@ -230,7 +239,6 @@ class Discoverer {
 
      if (isset($service->LocalID)) {
       $this->opLocalId = (String) $service->LocalID;
-      $this->claimedId = $this->userSuppliedId;
      } else {
       $this->opLocalId = self::ID_SELECT_URL;
       $this->claimedId = self::ID_SELECT_URL;
@@ -258,7 +266,7 @@ class Discoverer {
   if (isset($meta['x-xrds-location'])) {
    Logger::log('Found XRDS meta tag: %s', $meta['x-xrds-location']);
    // TODO: Allow relative URLs?
-   return $this->yadisDiscover($meta['x-xrds-location'], false);
+   return $meta['x-xrds-location'];
   }
 
   return false;
@@ -278,21 +286,7 @@ class Discoverer {
 
   $details = stream_get_meta_data($fh);
 
-  foreach ($details['wrapper_data'] as $line) {
-   if (preg_match('/^Location: (.*?)$/i', $line, $m)) {
-    if (strpos($m[1], '://') !== false) {
-     // Fully qualified URL
-     $this->claimedId = $m[1];
-    } else if ($m[1][0] == '/') {
-     // Absolute URL
-     $this->claimedId = preg_replace('#^(.*?://.*?)/.*$#', '\1', $this->claimedId) . $m[1];
-    } else {
-     // Relative URL
-     $this->claimedId = preg_replace('#^(.*?://.*/).*?$#', '\1', $this->claimedId) . $m[1];
-    }
-   }
-   $this->claimedId = self::normalise($this->claimedId);
-  }
+  $this->handleRedirects($details);
 
   Logger::log('Claimed identity: %s', $this->claimedId);
 
@@ -304,6 +298,27 @@ class Discoverer {
   fclose($fh);
 
   $this->parseHtml($data);
+ }
+
+ protected function handleRedirects($details) {
+  foreach ($details['wrapper_data'] as $line) {
+   if (preg_match('/^Location: (.*?)$/i', $line, $m)) {
+    if (strpos($m[1], '://') !== false) {
+     // Fully qualified URL
+     $this->claimedId = $m[1];
+     Logger::log('Redirection (full qualified) to ' . $m[1]);
+    } else if ($m[1][0] == '/') {
+     // Absolute URL
+     $this->claimedId = preg_replace('#^(.*?://.*?)/.*$#', '\1', $this->claimedId) . $m[1];
+     Logger::log('Redirection (absolute) to ' . $m[1] . ': ' . $this->claimedId);
+    } else {
+     // Relative URL
+     $this->claimedId = preg_replace('#^(.*?://.*/).*?$#', '\1', $this->claimedId) . $m[1];
+     Logger::log('Redirection (relative) to ' . $m[1] . ': ' . $this->claimedId);
+    }
+   }
+   $this->claimedId = self::normalise($this->claimedId);
+  }
  }
 
  protected static function getLinks($data) {
@@ -355,6 +370,7 @@ class Discoverer {
    $this->claimedId = $this->userSuppliedId;
    $this->opLocalId = isset($links['openid2.local_id']) ? $links['openid2.local_id'] : $this->claimedId;
 
+   $this->servers[$this->endpointUrl] = $server = new Server($this->endpointUrl, $this->version);
    Logger::log('OpenID EP found. End point: %s, claimed id: %s, op local id: %s', $this->endpointUrl, $this->claimedId, $this->opLocalId);
   } else if (isset($links['openid.server'])) {
    $this->version = 1;
@@ -367,6 +383,7 @@ class Discoverer {
     $this->opLocalId = $links['openid.delegate'];
    }
 
+   $this->servers[$this->endpointUrl] = $server = new Server($this->endpointUrl, $this->version);
    Logger::log('OpenID EP found. End point: %s, claimed id: %s, op local id: %s', $this->endpointUrl, $this->claimedId, $this->opLocalId);
   }
  }
