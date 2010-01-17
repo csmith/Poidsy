@@ -41,6 +41,7 @@
   'samplehtml/v2-test2.html' => '2:http://server.com/path,',
   'samplehtml/v2-test3.html' => '2:http://server.com/path,',
   'samplehtml/v2-test4.html' => '1:http://server.com/path,http://delegate.com/',
+  'samplehtml/v2-test5.html' => '1:http://server.com/path,http://delegate.com/',
  );
 
  array_walk($tests, 'doHtmlTest');
