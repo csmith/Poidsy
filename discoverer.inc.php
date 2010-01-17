@@ -70,6 +70,8 @@ class Discoverer {
  private $endpointUrl;    // OP Endpoint URL       || Identity Provider
  private $opLocalId;      // OP-local ID           || Delegate
 
+ private $servers = array();
+
  public function __construct($uri, $normalise = true) {
   if ($uri !== null) {
    $this->discover($this->userSuppliedId = ($normalise ? $this->normalise($uri) : $uri));
@@ -94,6 +96,10 @@ class Discoverer {
 
  public function getVersion() {
   return $this->version;
+ }
+
+ public function hasServer($endpointUrl) {
+  return isset($this->servers[$endpointUrl]);
  }
 
  public static function normalise($uri) {
@@ -194,7 +200,7 @@ class Discoverer {
  }
 
  private function parseYadis($data) {
-  $sxml = @new SimpleXMLElement($data); 
+  $sxml = @new SimpleXMLElement($data);
 
   if (!$sxml) {
    Logger::log('Failed to parse XRDS data as XML');
@@ -213,24 +219,26 @@ class Discoverer {
 
     if ((String) $type == 'http://specs.openid.net/auth/2.0/server') {
      $this->version = 2;
-     $this->server = (String) $service->URI;
-     $this->identity = self::ID_SELECT_URL; 
-     $this->servers[] = $server = new Server($this->server, 2);
-     Logger::log('OpenID EP found (server). Server: %s, identity: %s, claimed id: %s', $this->server, $this->identity, $this->claimedId);
+     $this->endpointUrl = (String) $service->URI;
+     $this->claimedId = $this->opLocalId = self::ID_SELECT_URL;
+     Logger::log('OpenID EP found (server). End point: %s, claimed id: %s, op local id: %s', $this->endpointUrl, $this->claimedId, $this->opLocalId);
      $found = true;
+     $this->servers[$this->endpointUrl] = $server = new Server($this->endpointUrl, $this->version);
     } else if ((String) $type == 'http://specs.openid.net/auth/2.0/signon') {
      $this->version = 2;
-     $this->server = (String) $service->URI;
-     $this->servers[] = $server = new Server($this->server, 2);
+     $this->endpointUrl = (String) $service->URI;
 
      if (isset($service->LocalID)) {
-      $this->identity = (String) $service->LocalID;
+      $this->opLocalId = (String) $service->LocalID;
+      $this->claimedId = $this->userSuppliedId;
      } else {
-      $this->identity = self::ID_SELECT_URL; 
+      $this->opLocalId = self::ID_SELECT_URL;
+      $this->claimedId = self::ID_SELECT_URL;
      }
 
-     Logger::log('OpenID EP found (signon). Server: %s, identity: %s, claimed id: %s', $this->server, $this->identity, $this->claimedId); 
+     Logger::log('OpenID EP found (signon). End point: %s, claimed id: %s, op local id: %s', $this->endpointUrl, $this->claimedId, $this->opLocalId);
      $found = true;
+     $this->servers[$this->endpointUrl] = $server = new Server($this->endpointUrl, $this->version);
     } else {
      $services[] = (String) $type;
     }
@@ -245,7 +253,7 @@ class Discoverer {
  }
 
  private function parseYadisHTML($data) {
-  $meta = self::getMetaTags($data); 
+  $meta = self::getMetaTags($data);
 
   if (isset($meta['x-xrds-location'])) {
    Logger::log('Found XRDS meta tag: %s', $meta['x-xrds-location']);

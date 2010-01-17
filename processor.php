@@ -67,20 +67,22 @@
    $disc = tryDiscovery(OPENID_URL);
 
    $_SESSION['openid'] = array(
- 	'identity' => $disc->getIdentity(),
-	'delegate' => $disc->getDelegate(),
+	'identity' => $disc->getClaimedId(),
+	'claimedId' => $disc->getClaimedId(),
+	'endpointUrl' => $disc->getEndpointUrl(),
+	'opLocalId' => $disc->getOpLocalId(),
+	'userSuppliedId' => $disc->getUserSuppliedId(),
 	'version' => $disc->getVersion(),
 	'validated' => false,
-	'server' => $disc->getServer(),
 	'nonce' => uniqid(microtime(true), true),
 	'requests' => $reqs,
    );
 
-   $handle = getHandle($disc->getServer());
+   $handle = getHandle($disc->getEndpointUrl());
 
    $url = URLBuilder::buildRequest(defined('OPENID_IMMEDIATE') ? 'immediate' : 'setup',
-              $disc->getServer(), $disc->getDelegate(),
-              $disc->getIdentity(), URLBuilder::getCurrentURL(), $handle, $disc->getVersion());
+              $disc->getEndpointUrl(), $disc->getOpLocalId(),
+              $disc->getClaimedId(), URLBuilder::getCurrentURL(), $handle, $disc->getVersion());
 
    URLBuilder::doRedirect($url);
   } else if (isset($_REQUEST['openid_mode'])) {
@@ -167,7 +169,7 @@
   try {
    $disc = new Discoverer($url);
 
-   if ($disc->getServer() == null) {
+   if ($disc->getEndpointUrl() == null) {
     Logger::log('Couldn\'t perform discovery on %s', $url);
     error('notvalid', 'Claimed identity is not a valid identifier');
    }
@@ -224,10 +226,11 @@
   $valid = false;
 
   if (KEYMANAGER && isset($_REQUEST['openid_invalidate_handle'])) {
+   Logger::log('Request to invalidate handle received');
    $valid = KeyManager::dumbAuth();
 
    if ($valid) {
-    KeyManager::removeKey($_SESSION['openid']['server'], $_REQUEST['openid_invalidate_handle']);
+    KeyManager::removeKey($_SESSION['openid']['endpointUrl'], $_REQUEST['openid_invalidate_handle']);
    } else {
     error('noauth', 'Provider didn\'t authenticate message');
    }
@@ -258,11 +261,11 @@
    error('noimmediate', 'Couldn\'t perform immediate auth');
   }
 
-  $handle = getHandle($_SESSION['openid']['server']);
+  $handle = getHandle($_SESSION['openid']['endpointUrl']);
 
   $url = URLBuilder::buildRequest('setup', $_REQUEST['openid_user_setup_url'],
-                                $_SESSION['openid']['delegate'],
-                                $_SESSION['openid']['identity'],
+                                $_SESSION['openid']['opLocalId'],
+                                $_SESSION['openid']['claimedId'],
                                 URLBuilder::getCurrentURL(), $handle);
 
   URLBuilder::doRedirect($url); 	
@@ -274,32 +277,34 @@
   * @param Boolean $valid True if the request has already been authenticated
   */
  function processPositiveResponse($valid) {
-  Logger::log('Positive response: identity = %s, expected = %s', $_REQUEST['openid_identity'], $_SESSION['openid']['identity']);
+  Logger::log('Positive response: identity = %s, expected = %s', $_REQUEST['openid_identity'], $_SESSION['openid']['claimedId']);
 
-  if ($_REQUEST['openid_identity'] != $_SESSION['openid']['identity']) {
-   if ($_SESSION['openid']['identity'] == 'http://specs.openid.net/auth/2.0/identifier_select') {
+  if ($_REQUEST['openid_identity'] != $_SESSION['openid']['claimedId']) {
+   if ($_SESSION['openid']['claimedId'] == 'http://specs.openid.net/auth/2.0/identifier_select') {
     $disc = new Discoverer($_REQUEST['openid_claimed_id'], false);
- 
-    if ($disc->hasServer($_SESSION['openid']['server'])) {
+
+    if ($disc->hasServer($_SESSION['openid']['endpointUrl'])) {
      $_SESSION['openid']['identity'] = $_REQUEST['openid_identity']; 
-     $_SESSION['openid']['delegate'] = $_REQUEST['openid_claimed_id'];
-     resetRequests(true);
+     $_SESSION['openid']['opLocalId'] = $_REQUEST['openid_claimed_id'];
     } else {
-     error('diffid', 'The OP at ' . $_SESSION['openid']['server'] . ' is attmpting to claim ' . $_REQUEST['openid_claimed_id'] . ' but ' . ($disc->getServer() == null ? 'that isn\'t a valid identifier' : 'that identifier only authorises ' . $disc->getServer()));
+     error('diffid', 'The OP at ' . $_SESSION['openid']['endpointUrl'] . ' is attmpting to claim ' . $_REQUEST['openid_claimed_id'] . ' but ' . ($disc->getEndpointUrl() == null ? 'that isn\'t a valid identifier' : 'that identifier only authorises ' . $disc->getClaimedId()));
     }
    } else {
      error('diffid', 'Identity provider validated wrong identity. Expected it to '
-  	             . 'validate ' . $_SESSION['openid']['delegate'] . ' but it '
+	             . 'validate ' . $_SESSION['openid']['opLocalId'] . ' but it '
   	             . 'validated ' . $_REQUEST['openid_identity']);
    }
   }
+
+  resetRequests(true);
 
   if (!$valid) {
    $dumbauth = true;
 
    if (KEYMANAGER) {
     try {
-     $valid = KeyManager::authenticate($_SESSION['openid']['server'], $_REQUEST);
+     Logger::log('Attempting to authenticate using association...');
+     $valid = KeyManager::authenticate($_SESSION['openid']['endpointUrl'], $_REQUEST);
      $dumbauth = false;
     } catch (Exception $ex) {
      // Ignore it - try dumb auth
@@ -307,6 +312,7 @@
    }
 
    if ($dumbauth) {
+    Logger::log('Attempting to authenticate using dumb auth...');
     $valid = KeyManager::dumbAuthenticate();
    }
   }
@@ -314,7 +320,8 @@
   $_SESSION['openid']['validated'] = $valid;
 
   if (!$valid) {
-  	error('noauth', 'Provider didn\'t authenticate response');
+   Logger::log('Validation failed!');
+   error('noauth', 'Provider didn\'t authenticate response');
   }
 
   parseSRegResponse();

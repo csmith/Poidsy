@@ -242,7 +242,7 @@
    $url = URLBuilder::buildAuth($_REQUEST, $_SESSION['openid']['version']);
 
    try {
-    $data = Poster::post($_SESSION['openid']['server'], $url);
+    $data = Poster::post($_SESSION['openid']['endpointUrl'], $url);
    } catch (Exception $ex) {
     return false;
    }
