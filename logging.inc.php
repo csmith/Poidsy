@@ -43,12 +43,12 @@ class Logger {
  }
 
  protected static function getCaller() {
-  $trace = debug_backtrace(); // First two will be log and getCaller
-  $trace = $trace[2];
+  $traces = debug_backtrace(); // First one will be getCaller, next Log::logger
+  $trace = $traces[2];
 
   array_walk($trace['args'], array('Logger', 'formatArg'));
 
-  return sprintf('%s:%s %s%s%s(%s)', basename($trace['file']), $trace['line'], $trace['class'], $trace['type'], $trace['function'], implode(', ', $trace['args']));
+  return sprintf('%s:%s %s%s%s(%s)', basename($trace['file']), $traces[1]['line'], $trace['class'], $trace['type'], $trace['function'], implode(', ', $trace['args']));
  }
 
  protected static function formatArg(&$value, $key) {
