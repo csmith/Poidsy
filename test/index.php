@@ -5,6 +5,7 @@
    td, th { border: 1px solid #000; padding: 10px; }
    td.error { text-align: center; color: #fff; background-color: #c00; }
    td.succ { text-align: center; color: #fff; background-color: #0c0; }
+   var { font-size: small; color: purple; font-style: normal; padding: 0 2px; }
   </style>
  </head>
  <body>
