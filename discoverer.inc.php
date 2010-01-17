@@ -344,13 +344,8 @@ class Discoverer {
    $this->endpointUrl = $links['openid2.provider'];
    //$this->servers[] = new Server($this->server, 2);
 
-   if (isset($links['openid2.local_id'])) {
-    $this->claimedId = $this->userSuppliedId;
-    $this->opLocalId = $links['openid2.local_id'];
-   } else {
-    $this->claimedId = self::ID_SELECT_URL;
-    $this->opLocalId = self::ID_SELECT_URL;
-   }
+   $this->claimedId = $this->userSuppliedId;
+   $this->opLocalId = isset($links['openid2.local_id']) ? $links['openid2.local_id'] : $this->claimedId;
 
    Logger::log('OpenID EP found. End point: %s, claimed id: %s, op local id: %s', $this->endpointUrl, $this->claimedId, $this->opLocalId);
   } else if (isset($links['openid.server'])) {
