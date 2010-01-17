@@ -6,7 +6,7 @@
  *
  * Original code (C) 2005 JanRain <openid@janrain.com>
  * Modifications (C) 2007 Stephen Bounds.
- * Further modifications (C) 2008-2009 Chris Smith.
+ * Further modifications (C) 2008-2010 Chris Smith.
  *
  * Licensed under the LGPL.
  */
