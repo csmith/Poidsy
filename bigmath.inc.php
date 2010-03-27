@@ -198,7 +198,7 @@ abstract class BigMath {
       }
 
       // Try to load dynamic modules.
-      if (!$loaded) {
+      if (!$loaded && function_exists('dl')) {
         foreach ($ext['modules'] as $module) {
           if (@dl($module . "." . PHP_SHLIB_SUFFIX)) {
             $loaded = true;

@@ -74,7 +74,7 @@
  foreach ($extensions as $ext) {
   if ($ext['extension'] && extension_loaded($ext['extension'])) {
    $loaded = true;
-  } else {
+  } elseif (function_exists('dl')) {
    foreach ($ext['modules'] as $module) {
     if (@dl($module . "." . PHP_SHLIB_SUFFIX)) {
      $loaded = true;
