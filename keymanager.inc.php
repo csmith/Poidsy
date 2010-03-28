@@ -23,6 +23,7 @@
  */
 
  require_once(dirname(__FILE__) . '/bigmath.inc.php');
+ require_once(dirname(__FILE__) . '/logging.inc.php');
  require_once(dirname(__FILE__) . '/poster.inc.php');
  require_once(dirname(__FILE__) . '/urlbuilder.inc.php');
 
@@ -60,12 +61,14 @@
    *
    * @param String $server The server to associate with
    */
-  public static function associate($server) {
-   $data = URLBuilder::buildAssociate($server, $_SESSION['openid']['version']);
+  public static function associate($server, $assocType = null, $sessionType = null) {
+   Logger::log('Attempting to associate with %s, assocType: %s, sessionType: %s', $server, $assocType, $sessionType);
+   $data = URLBuilder::buildAssociate($server, $_SESSION['openid']['version'], $assocType, $sessionType);
 
    try {
     $res = Poster::post($server, $data);
    } catch (Exception $ex) {
+    Logger::log('Exception while posting: %s', $ex->getMessage());
     return;
    }
 
@@ -75,6 +78,27 @@
     if (preg_match('/^(.*?):(.*)$/', $line, $m)) {
      $data[$m[1]] = $m[2];
     }
+   }
+
+   if (isset($data['error_code']) && $data['error_code'] == 'unsupported-type') {
+    $cont = false;
+
+    if (isset($data['session_type']) && $data['session_type'] != $sessionType) {
+     // TODO: Check we support it before actually trying
+     $sessionType = $data['session_type'];
+     $cont = true;
+    }
+
+    if (isset($data['assoc_type']) && $data['assoc_type'] != $assocType) {
+     $assocType = $data['assoc_type'];
+     $cont = true;
+    }
+
+    if ($cont) {
+     self::associate($server, $assocType, $sessionType);
+    }
+
+    return;
    }
 
    try {

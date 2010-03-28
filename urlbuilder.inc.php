@@ -113,10 +113,13 @@
    }
   }
 
-  public static function buildAssociate($server, $version = 1) {
+  public static function buildAssociate($server, $version = 1, $assocType = null, $sessionType = null) {
+   if ($assocType == null) { $assocType = 'HMAC-SHA1'; }
+   if ($sessionType == null) { $sessionType = 'DH-SHA1'; }
+
    $args = array(
 	'openid.mode' => 'associate',
-	'openid.assoc_type' => 'HMAC-SHA1',
+	'openid.assoc_type' => $assocType,
    );
 
    if ($version >= self::MIN_VERSION_FOR_NS) {
@@ -124,7 +127,7 @@
    }
 
    if (KeyManager::supportsDH()) {
-    $args['openid.session_type'] = 'DH-SHA1';
+    $args['openid.session_type'] = $sessionType;
     $args['openid.dh_modulus'] = KeyManager::getDhModulus();
     $args['openid.dh_gen'] = KeyManager::getDhGen();
     $args['openid.dh_consumer_public'] = KeyManager::getDhPublicKey($server);

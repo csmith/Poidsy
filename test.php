@@ -55,7 +55,7 @@
  }
 
  echo '<tr><th colspan="2">Poidsy requirements</th></tr>';
- doTest('PHP Version', version_compare(PHP_VERSION, '5.2.0', '>='), 'Poidsy requires PHP version 5.2.0 or greater to run');
+ doTest('PHP Version', version_compare(PHP_VERSION, '5.2.10', '>='), 'Poidsy requires PHP version 5.2.10 or greater to run');
  doTest('Allow_url_fopen', ini_get('allow_url_fopen'), 'Poidsy requires allow_url_fopen to be configured to true');
 
  echo '<tr><th colspan="2">Associate mode requirements</th></tr>';

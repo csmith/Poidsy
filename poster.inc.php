@@ -28,7 +28,8 @@
    $params = array(
 	'http' => array(
 		'method' => 'POST',
-                 'content' => $data
+                'content' => $data,
+		'ignore_errors' => true
 	)
    );
 
