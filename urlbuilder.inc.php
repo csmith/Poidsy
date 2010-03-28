@@ -61,7 +61,7 @@
   public static function buildRequest($type, $base, $delegate, $identity, $returnURL, $handle, $version = 1) {
    $args = array(
     'openid.mode' => 'checkid_' . $type,
-    'openid.identity' => $identity,
+    'openid.identity' => $version == 1 ? $delegate : $identity,
     'openid.claimed_id' => $delegate,
     ($version == 1 ? 'openid.trust_root' : 'openid.realm') => self::getTrustRoot($returnURL),
     'openid.return_to' => self::addArguments($returnURL,
