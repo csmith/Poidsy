@@ -286,7 +286,9 @@
                          . URLBuilder::getCurrentURL());
   }
 
-  if ($_REQUEST['openid_identity'] != $_SESSION['openid']['claimedId'] && $_REQUEST['openid_identity'] != $_SESSION['openid']['opLocalId']) {
+  $id = $_REQUEST[isset($_REQUEST['openid_claimed_id']) ? 'openid_claimed_id' : 'openid_identity'];
+
+  if (!URLBuilder::isSameURL($id, $_SESSION['openid']['claimedId']) && !URLBuilder::isSameURL($id, $_SESSION['openid']['opLocalId'])) {
    if ($_SESSION['openid']['claimedId'] == 'http://specs.openid.net/auth/2.0/identifier_select') {
     $disc = new Discoverer($_REQUEST['openid_claimed_id'], false);
 
@@ -299,7 +301,7 @@
    } else {
      error('diffid', 'Identity provider validated wrong identity. Expected it to '
 	             . 'validate ' . $_SESSION['openid']['claimedId'] . ' but it '
-  	             . 'validated ' . $_REQUEST['openid_identity']);
+  	             . 'validated ' . $id);
    }
   }
 

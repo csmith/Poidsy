@@ -165,8 +165,12 @@
    //       also be present with the same values in the URL of the HTTP request the
    //       RP received.
 
-   $actual = parse_url(self::getCurrentURL(true));
-   $return = parse_url($url);
+   return self::isSameURL(self::getCurrentURL(true), $url);
+  }
+
+  public static function isSameURL($url1, $url2) {
+   $actual = parse_url($url1);
+   $return = parse_url($url2);
 
    foreach (array('scheme', 'host', 'port', 'user', 'pass', 'path') as $part) {
     if ($part == 'port') {
