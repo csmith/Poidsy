@@ -159,7 +159,43 @@
    return self::addArguments(false, $args);
   }
 
-  public static function getCurrentURL() {
+  public static function isValidReturnToURL($url) {
+   // 11.1: The URL scheme, authority, and path MUST be the same between the two URLs.
+   //       Any query parameters that are present in the "openid.return_to" URL MUST
+   //       also be present with the same values in the URL of the HTTP request the
+   //       RP received.
+
+   $actual = parse_url(self::getCurrentURL(true));
+   $return = parse_url($url);
+
+   foreach (array('scheme', 'host', 'port', 'user', 'pass', 'path') as $part) {
+    if ($part == 'port') {
+     if (!isset($actual['port'])) { $actual['port'] = $actual['scheme'] == 'https' ? 443 : 80; }
+     if (!isset($return['port'])) { $return['port'] = $return['scheme'] == 'https' ? 443 : 80; }
+    }
+
+    if (isset($actual[$part]) ^ isset($return[$part])) {
+     // Present in one but not the other
+     return false;
+    } else if (isset($actual[$part]) && $actual[$part] != $return[$part]) {
+     // Present in both but different
+     return false;
+    }
+   }
+
+   parse_str($actual['query'], $actualVars);
+   parse_str($return['query'], $returnVars);
+
+   foreach ($returnVars as $key => $value) {
+    if (!isset($actualVars[$key]) || $actualVars[$key] != $value) {
+     return false;
+    }
+   }
+ 
+   return true;
+  }
+
+  public static function getCurrentURL($raw = false) {
    $res = 'http';
 
    if (isset($_SERVER['HTTPS'])) {
@@ -168,14 +204,16 @@
 
    $res .= '://' . $_SERVER['SERVER_NAME'];
 
-   if ($_SERVER['SERVER_PORT'] != 80) {
+   if ($_SERVER['SERVER_PORT'] != (isset($_SERVER['HTTPS']) ? 443 : 80)) {
     $res .= ':' . $_SERVER['SERVER_PORT'];
    }
 
    $url = $_SERVER['REQUEST_URI'];
 
-   while (preg_match('/([\?&])openid[\._](.*?)=(.*?)(&|$)/', $url, $m)) {
-    $url = str_replace($m[0], $m[1], $url);
+   if (!$raw) {
+    while (preg_match('/([\?&])openid[\._](.*?)=(.*?)(&|$)/', $url, $m)) {
+     $url = str_replace($m[0], $m[1], $url);
+    }
    }
 
    $url = preg_replace('/\??&*$/', '', $url);

@@ -279,6 +279,13 @@
  function processPositiveResponse($valid) {
   Logger::log('Positive response: identity = %s, expected = %s', $_REQUEST['openid_identity'], $_SESSION['openid']['claimedId']);
 
+  if (!URLBuilder::isValidReturnToURL($_REQUEST['openid_return_to'])) {
+   Logger::log('Return_to check failed: %s, URL: %s', $_REQUEST['openid_return_to'], URLBuilder::getCurrentURL(true));
+   error('diffreturnto', 'The identity provider stated return URL was '
+                         . $_REQUEST['openid_return_to'] . ' but it actually seems to be '
+                         . URLBuilder::getCurrentURL());
+  }
+
   if ($_REQUEST['openid_identity'] != $_SESSION['openid']['claimedId'] && $_REQUEST['openid_identity'] != $_SESSION['openid']['opLocalId']) {
    if ($_SESSION['openid']['claimedId'] == 'http://specs.openid.net/auth/2.0/identifier_select') {
     $disc = new Discoverer($_REQUEST['openid_claimed_id'], false);
