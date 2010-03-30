@@ -36,13 +36,35 @@
              . ',' . SREG_DOB . ',' . SREG_GENDER . ',' . SREG_POSTCODE . ','
              . SREG_COUNTRY . ',' . SREG_LANGUAGE . ', ' . SREG_TIMEZONE);
 
- function parseSRegResponse() {
-  foreach (explode(',', SREG_ALL) as $reg) {
-   $reg = str_replace('.', '_', $reg);
-   if (isset($_REQUEST[$reg])) {
-    $_SESSION['openid']['sreg'][substr($reg, 12)] = $_REQUEST[$reg];
+ class SReg {
+
+  public function parseResponse() {
+   foreach (explode(',', SREG_ALL) as $reg) {
+    $reg = str_replace('.', '_', $reg);
+    if (isset($_REQUEST[$reg])) {
+     $_SESSION['openid']['sreg'][substr($reg, 12)] = $_REQUEST[$reg];
+    }
    }
   }
+
+  public function decorate(&$args, $ns) {
+   if (defined('OPENID_SREG_REQUEST')) {
+    $args['openid.sreg.required'] = OPENID_SREG_REQUEST;
+   }
+
+   if (defined('OPENID_SREG_OPTIONAL')) {
+    $args['openid.sreg.optional'] = OPENID_SREG_OPTIONAL;
+   }
+
+   if (defined('OPENID_SREG_POLICY')) {
+    $args['openid.sreg.policy_url'] = OPENID_SREG_POLICY;
+   }
+  }
+
  }
+
+ $sreg = new SReg();
+ $_POIDSY['decorators'][] = $sreg;
+ $_POIDSY['handlers'][] = $sreg;
 
 ?>

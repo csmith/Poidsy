@@ -76,7 +76,7 @@
     $args['openid.assoc_handle'] = $handle;
    }
 
-   self::addSRegArgs($args);
+   self::decorateArgs($args);
 
    return self::addArguments($base, $args);
   }
@@ -99,17 +99,15 @@
    return $root; 
   }
 
-  private static function addSRegArgs(&$args) {
-   if (defined('OPENID_SREG_REQUEST')) {
-    $args['openid.sreg.required'] = OPENID_SREG_REQUEST;
-   }
+  private static function decorateArgs(&$args) {
+   global $_POIDSY;
 
-   if (defined('OPENID_SREG_OPTIONAL')) {
-    $args['openid.sreg.optional'] = OPENID_SREG_OPTIONAL;
-   }
+   if (empty($_POIDSY['decorators'])) { return; }
 
-   if (defined('OPENID_SREG_POLICY')) {
-    $args['openid.sreg.policy_url'] = OPENID_SREG_POLICY;
+   $id = 1;
+
+   foreach ($_POIDSY['decorators'] as $decorator) {
+    $decorator->decorate($args, 'ext' . ($id++));
    }
   }
 

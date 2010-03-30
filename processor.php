@@ -25,7 +25,6 @@
  require_once(dirname(__FILE__) . '/logging.inc.php');
  require_once(dirname(__FILE__) . '/discoverer.inc.php');
  require_once(dirname(__FILE__) . '/poster.inc.php');
- require_once(dirname(__FILE__) . '/sreg.inc.php');
  require_once(dirname(__FILE__) . '/urlbuilder.inc.php');
  require_once(dirname(__FILE__) . '/keymanager.inc.php');
 
@@ -333,7 +332,7 @@
    error('noauth', 'Provider didn\'t authenticate response');
   }
 
-  parseSRegResponse();
+  Processor::callHandlers();
   URLBuilder::redirect(); 
  }
 
@@ -366,6 +365,20 @@
   $_SESSION['openid']['error'] = $message;
   $_SESSION['openid']['errorcode'] = $code;
   URLBuilder::redirect();
+ }
+
+ class Processor {
+
+  public static function callHandlers() {
+   global $_POIDSY;
+
+   if (empty($_POIDSY['handlers'])) { return; }
+
+   foreach ($_POIDSY['handlers'] as $handler) {
+    $handler->parseResponse();
+   }
+  }
+
  }
 
  // Here we go!

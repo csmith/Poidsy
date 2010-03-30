@@ -55,6 +55,9 @@
    define('OPENID_URL', $_POST['openid_type']);
   }
 
+  // Include the simple registration extension
+  require('../../sreg.ext.php');
+
   require('../../processor.php');
 
  } else {
