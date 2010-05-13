@@ -58,6 +58,10 @@
   // Include the simple registration extension
   require('../../sreg.ext.php');
 
+  // Include and configure the attribute exchange extension
+  require('../../ax.ext.php');
+  AttributeExchange::addRequiredType('email', AttributeExchange::EMAIL);
+
   require('../../processor.php');
 
  } else {
@@ -122,6 +126,34 @@
    foreach ($_SESSION['openid']['sreg'] as $type => $data) {
     echo '<tr><th>', htmlentities($type), '</th>';
     echo '<td>', htmlentities($data), '</td></tr>';
+   }
+
+   echo '</table>';
+
+   unset($_SESSION['openid']['sreg']);
+  }
+
+  // Show the attribute exchange data returned, if any.
+  if (isset($_SESSION['openid']['ax'])) {
+   echo '<table>';
+   echo '<caption>Attribute Exchange Extension data</caption>';
+
+   foreach ($_SESSION['openid']['ax']['types'] as $type => $uri) {
+    echo '<tr><th>', htmlentities($type), '</th>';
+    echo '<td>', htmlentities($uri), '</td>';
+    echo '<td>', $count = $_SESSION['openid']['ax']['counts'][$type], '</td>';
+    echo '<td>';
+    if ($count == 1) {
+     echo htmlentities($_SESSION['openid']['ax']['data'][$type]);
+    } else if ($count > 1) {
+     echo '<ol>';
+     foreach ($_SESSION['openid']['ax']['data'][$type] as $value) {
+      echo '<li>', htmlentities($value), '</li>';
+     }
+     echo '</ol>';
+    }
+    echo '</td>';
+    echo '</tr>';
    }
 
    echo '</table>';
