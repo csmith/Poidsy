@@ -48,7 +48,10 @@ class Logger {
 
   array_walk($trace['args'], array('Logger', 'formatArg'));
 
-  return sprintf('%s:%s %s%s%s(%s)', basename($trace['file']), $traces[1]['line'], $trace['class'], $trace['type'], $trace['function'], implode(', ', $trace['args']));
+  $class = isset($trace['class']) ? $trace['class'] : '';
+  $type = isset($trace['type']) ? $trace['type'] : '';
+
+  return sprintf('%s:%s %s%s%s(%s)', basename($trace['file']), $traces[1]['line'], $class, $type, $trace['function'], implode(', ', $trace['args']));
  }
 
  protected static function formatArg(&$value, $key) {
