@@ -1,4 +1,4 @@
-# Welcome to Poidsy 0.5 ########################################################
+# Welcome to Poidsy 0.6 ########################################################
 
 Poidsy is a PHP OpenID consumer (or *relaying party* in OpenID 2.0 parlance). It
 is designed to be extremely simple for developers to use, hiding as much of the
