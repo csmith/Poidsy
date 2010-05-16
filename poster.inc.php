@@ -1,6 +1,6 @@
 <?PHP
 
-/* Poidsy 0.5 - http://chris.smith.name/projects/poidsy
+/* Poidsy 0.6 - http://chris.smith.name/projects/poidsy
  * Copyright (c) 2008-2010 Chris Smith
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
