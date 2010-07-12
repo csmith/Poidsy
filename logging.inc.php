@@ -24,7 +24,7 @@
 
 class Logger {
 
- const ENABLE_LOGGING = true;
+ const ENABLE_LOGGING = false;
  const LOGGING_FILENAME = '/tmp/poidsy-debug.log';
  const TRUNCATE_ARGS = true;
 
