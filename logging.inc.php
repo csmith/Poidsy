@@ -55,6 +55,12 @@ class Logger {
  }
 
  protected static function formatArg(&$value, $key) {
+  if (is_array($value)) {
+   $value = '[' . implode(',', $value) . ']';
+  } else if (is_object($value)) {
+   $value = '(object: ' . get_class($value) . ')';
+  }
+
   if (strlen($value) > 30 && self::TRUNCATE_ARGS) {
    $value = substr($value, 0, 27) . '...';
   }

@@ -306,7 +306,7 @@ class Discoverer {
     if (strpos($m[1], '://') !== false) {
      // Fully qualified URL
      $this->claimedId = $m[1];
-     Logger::log('Redirection (full qualified) to ' . $m[1]);
+     Logger::log('Redirection (fully qualified) to ' . $m[1]);
     } else if ($m[1][0] == '/') {
      // Absolute URL
      $this->claimedId = preg_replace('#^(.*?://.*?)/.*$#', '\1', $this->claimedId) . $m[1];
