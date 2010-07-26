@@ -249,11 +249,12 @@
 
    $sig = base64_encode(hash_hmac($algo, $contents, base64_decode($data['mac_key']), true));
 
-   if ($sig == $args['openid_sig']) {
-    return true;
-   } else {
-    return false;
+   // Manually compare characters to prevent timing attacks
+   $res = strlen($sig) == strlen($args['openid_sig']);
+   for ($i = 0; $i < strlen($sig); $i++) {
+    $res &= $sig[$i] == $args['openid_sig'][$i];
    }
+   return $res;
   }
 
   /**
