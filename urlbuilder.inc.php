@@ -198,15 +198,17 @@
   }
 
   public static function getCurrentURL($raw = false) {
+   $https = false;
    $res = 'http';
 
-   if (isset($_SERVER['HTTPS'])) {
-    $res = 'https';
+   if (isset($_SERVER['HTTPS']) && !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') {
+    $https = true;
+    $res .= 's';
    }
 
    $res .= '://' . $_SERVER['SERVER_NAME'];
 
-   if ($_SERVER['SERVER_PORT'] != (isset($_SERVER['HTTPS']) ? 443 : 80)) {
+   if ($_SERVER['SERVER_PORT'] != ($https ? 443 : 80)) {
     $res .= ':' . $_SERVER['SERVER_PORT'];
    }
 
