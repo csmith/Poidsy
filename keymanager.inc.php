@@ -43,6 +43,7 @@
    */
   private static function loadData() {
    if (self::$data == null) {
+    Logger::log('Loading data from %s/keycache.php', dirname(__FILE__));
     $data = file(dirname(__FILE__) . '/keycache.php');
     self::$header = array_shift($data);
     self::$data = unserialize(implode("\n", $data));
@@ -53,6 +54,7 @@
    * Saves the KeyManager's data array to disk.
    */
   private static function saveData() {
+   Logger::log('Saving data to %s/keycache.php', dirname(__FILE__));
    file_put_contents(dirname(__FILE__) . '/keycache.php', self::$header . serialize(self::$data));
   }
 
@@ -164,6 +166,7 @@
    self::loadData();
 
    if (!isset(self::$data[$server])) {
+    Logger::log('No data found for %s', $server);
     return null;
    }
 
@@ -171,6 +174,7 @@
     if ($handle == '__private') { continue; }
 
     if ($data['expires_at'] < time()) {
+     Logger::log('Handle for %s expired at %s, unsetting', $server, $data['expires_at']);
      unset(self::$data[$server][$handle]);
     } else {
      return $handle;
@@ -224,9 +228,12 @@
    * @return True if the message was authenticated, false if it's a fake
    */
   public static function authenticate($server, $args) {
+   Logger::log('Authenticating message from %s', $server);
+
    $data = self::getData($server, $args['openid_assoc_handle']);
 
    if ($data === null) {
+    Logger::log('Can\'t authenticate, no key available');
     throw new Exception('No key available for that server/handle');
    }
 
@@ -244,16 +251,20 @@
      $algo = 'sha256';
      break;
     default:
+     Logger::log('Can\'t authenticate, unknown assoc type %s', $data['assoc_type']);
      throw new Exception('Unable to handle association type ' . $data['assoc_type']);
    }
 
    $sig = base64_encode(hash_hmac($algo, $contents, base64_decode($data['mac_key']), true));
+   Logger::log('Expected signature %s, received signature %s', $sig, $args['openid_sig']);
 
    // Manually compare characters to prevent timing attacks
    $res = strlen($sig) == strlen($args['openid_sig']);
    for ($i = 0; $i < strlen($sig); $i++) {
     $res &= $sig[$i] == $args['openid_sig'][$i];
    }
+
+   Logger::log('Authentication result: %s', $res ? 'good' : 'bad');
    return $res;
   }
 
@@ -264,6 +275,8 @@
    * @return True if the request has been authenticated, false otherwise.
    */
   public static function dumbAuthenticate() {
+   Logger::log('Performing dumb authentication');
+
    $url = URLBuilder::buildAuth($_REQUEST, $_SESSION['openid']['version']);
 
    try {
@@ -279,6 +292,7 @@
     }
    }
 
+   Logger::log('Authentication result: %s', $valid ? 'good' : 'bad');
    return $valid;
   }
 

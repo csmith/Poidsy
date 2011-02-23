@@ -22,6 +22,7 @@
  * SOFTWARE.
  */
 
+ require_once(dirname(__FILE__) . '/logging.inc.php');
  require_once(dirname(__FILE__) . '/keymanager.inc.php');
 
  class URLBuilder {
@@ -246,6 +247,7 @@
    * @param $url The URL to redirect the user to
    */
   public static function doRedirect($url) {
+   Logger::log('Redirecting to %s', $url);
    header('Location: ' . $url);
    echo '<html><head><title>Redirecting</title></head><body>';
    echo '<p>Redirecting to <a href="', htmlentities($url), '">';

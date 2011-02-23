@@ -173,6 +173,8 @@
     error('notvalid', 'Claimed identity is not a valid identifier');
    }
 
+   Logger::log('Finished discovery on %s', $url);
+
    return $disc;
   } catch (Exception $e) {
    Logger::log('Error during discovery on %s: %s', $url, $e->getMessage());
@@ -190,13 +192,18 @@
   * @return The association handle of the server or null on failure
   */
  function getHandle($server) {
+  Logger::log('Attempting to find a handle for %s', $server);
+
   if (KEYMANAGER) {
+   Logger::log('Using the key manager...');
    if (!KeyManager::hasHandle($server)) {
+    Logger::log('Key manager has no handle, trying to associate with %s', $server);
     KeyManager::associate($server);
    }
 
    return KeyManager::getHandle($server);
   } else {
+   Logger::log('Not using key manager...');
    return null;
   }
  }
