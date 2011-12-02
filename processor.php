@@ -233,10 +233,10 @@
 
   if (KEYMANAGER && isset($_REQUEST['openid_invalidate_handle'])) {
    Logger::log('Request to invalidate handle received');
-   $valid = KeyManager::dumbAuth();
+   $valid = KeyManager::dumbAuthenticate();
 
    if ($valid) {
-    KeyManager::removeKey($_SESSION['openid']['endpointUrl'], $_REQUEST['openid_invalidate_handle']);
+    KeyManager::revokeHandle($_SESSION['openid']['endpointUrl'], $_REQUEST['openid_invalidate_handle']);
    } else {
     error('noauth', 'Provider didn\'t authenticate message');
    }
