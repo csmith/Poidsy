@@ -1,0 +1,127 @@
+body {
+ margin: 90px 30px;
+ font-size: large;
+}
+
+h1 {
+ position: absolute;
+ top: 0px;
+ left: 0px;
+ width: 100%;
+ background-color: #eee;
+ color: #666;
+ margin: 0px;
+ padding: 10px 0px;
+ border-bottom: 1px solid black;
+}
+
+h1 img {
+ margin: 0px 5px 0px 10px;
+}
+
+h2 {
+ border-bottom: 5px solid #ccc;
+}
+
+h3 {
+ border-bottom: 3px solid #ccc;
+}
+
+input#openid_url {
+ background: url('demo/openid.gif') no-repeat;
+ padding-left: 20px;
+}
+
+div.left {
+ float: left;
+ width: 65%;
+ margin: 0px;
+ padding: 0px 20px 0px 0px;
+ border-right: 2px solid #ccc;
+}
+
+div.right {
+ margin-left: 65%; padding-left: 40px;
+}
+
+h2.first {
+ margin-top: 0px;
+}
+
+small {
+ font-size: 0.3em;
+}
+
+#footnote {
+ border-top: 1px solid #ccc;
+ padding: 5px;
+ font-size: small;
+}
+
+.left li {
+ margin-bottom: 10px;
+}
+
+.left li ul {
+ margin-top: 10px;
+}
+
+ul#menu {
+ position: absolute; top: 0px; right: 0px;
+ list-style-type: none; margin: 0px; padding: 0px 5px;
+}
+
+ul#menu li {
+ display: inline;
+ font-size: small;
+}
+
+dd {
+ margin-top: 5px;
+ margin-bottom: 20px;
+}
+
+dt {
+ font-family: monospace;
+}
+
+p.asof {
+ text-align: center;
+ font-size: small;
+ text-transform: uppercase;
+}
+
+table.providers {
+ width: 100%;
+ border-collapse: collapse;
+}
+
+table.providers td {
+ border: 1px solid #ccc;
+}
+
+table.providers th {
+ background-color: #ccc;
+ border: 1px solid #999;
+}
+
+td.good {
+ background-color: green;
+}
+
+td.bad {
+ background-color: red;
+}
+
+td.warn {
+ background-color: orange;
+}
+
+td.good, td.bad, td.warn {
+ text-align: center;
+ color: white;
+}
+
+ul.key strong {
+ font-family: monospace;
+}

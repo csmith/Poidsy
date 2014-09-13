@@ -1,0 +1,65 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+ <head>
+  <title>Poidsy - A PHP OpenID Consumer</title>
+  <link rel="stylesheet" href="style.css" type="text/css">
+ </head>
+ <body>
+  <h1><img src="openid.png" alt="OpenID logo"> Poidsy <small>A PHP OpenID Consumer</small></h1>
+  <ul id="menu">
+   <li><a href="index.html">Home</a></li>
+   <li><a href="instructions.html">Instructions</a></li>
+   <li><a href="changelog.html">Changelog</a></li>
+  </ul>
+  <div class="left">
+  <h2 class="first">Background</h2>
+  <p>
+   <em>Poidsy</em> is a set of PHP scripts
+   that serve as an OpenID consumer. OpenID consumers allow users to authenticate
+   themselves with an OpenID identifier. For more information about OpenID, see
+   <a href="http://openid.net/">openid.net</a>.
+  </p>
+  <p>
+   At the time of writing, there were several consumer "libraries" available
+   for PHP developers. From what I saw of them, they all exposed far too much
+   of the OpenID logic to the implementor for my liking &mdash; you pretty much
+   needed to build your own consumer using their libraries, rather than simply
+   using a pre-made one.
+  </p>
+  <h2>Use it</h2>
+  <p>
+   The current version of Poidsy is <em>0.6</em>. At this stage, Poidsy has
+   support for both OpenID 1.x and 2.x, as well as a couple of extensions
+   to those. If you encounter any providers that do not work with
+   Poidsy, please <a href="http://chris.smith.name/">contact me</a>.
+  </p>
+  <p>
+   You can download the consumer here:
+   <a href="poidsy-0.6.tgz">poidsy-0.6.tgz</a> (18KB) | <a href="changelog.html">Changelog</a>
+  </p>
+  <p><a href="instructions.html">Instructions</a> for integrating Poidsy with an
+     existing login script are available.</p>
+  </div>
+  <div class="right">
+  <h2 class="first">Feedback</h2>
+  <p>
+   If you're using Poidsy (or are trying to but are having
+   problems) then I'd love to hear from you. My contact details can be found
+   on my <a href="http://chris.smith.name/" rel="me">personal website</a>.
+  </p>
+  <h2>Sites</h2>
+  <p>
+   The following sites allow OpenID authentication using Poidsy:
+  </p>
+  <ul>
+   <li><a href="http://apsps.MD87.co.uk/quotes/">Quote DB</a></li>
+   <li><a href="http://addons.dmdirc.com/">DMDirc addons site</a></li>
+   <li><a href="http://www.zipplet.co.uk/">Zipplet's Stuff</a> *</li>
+   <li><a href="http://home.dataforce.org.uk/">Home.Dataforce.org.uk</a> *</li>
+  </ul>
+  <div id="footnote">
+   * via a third-party <abbr title="single sign on">sso</abbr> service
+  </div>
+  </div>
+ </body>
+</html>

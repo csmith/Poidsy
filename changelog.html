@@ -1,0 +1,165 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+ <head>
+  <title>Poidsy - A PHP OpenID Consumer - Changelog</title>
+  <link rel="stylesheet" href="style.css" type="text/css">
+ </head>
+ <body>
+  <h1><img src="openid.png" alt="OpenID logo"> Poidsy <small>A PHP OpenID Consumer</small></h1>
+  <ul id="menu">
+   <li><a href="index.html">Home</a></li>
+   <li><a href="instructions.html">Instructions</a></li>
+   <li><a href="changelog.html">Changelog</a></li>
+  </ul>
+  <div class="left">
+   <h2 class="first">Changelog</h2>
+   <h3 id="6">0.6 &rarr; 0.7</h3>
+   <ul>
+    <li>Disable logging by default</li>
+    <li>Fix error when logging from within methods which take objects or arrays as arguments (thanks to Erik Johnson for the bug report)</li>
+    <li>Fix incorrect detection of HTTPS in some cases (thanks to Liam for the bug report)</li>
+    <li>Fixed a potential timer attack vulnerability</li>
+    <li>Fixed errors when handling a revocation (thanks to Daniele Venzano for the bug report)</li>
+   </ul>
+   <h3 id="5">0.5 &rarr; 0.6</h3>
+   <ul>
+    <li>After a successful login, the 'brute force' counter is now reduced by one</li>
+    <li>Added logging functionality to assist in debugging</li>
+    <li>Change "gmail.com" to full URL in basic example, as XRDS discovery only seems to work on the latter now</li>
+    <li>Fixed problem where claimed ID/identity/delegate were being set the wrong way around, causing incompatibility with some providers such as signon.com (thanks to Huma Javed for the bug report)</li>
+    <li>Added check for allow_url_fopen to test.php (thanks to Lyceuhns for bringing this up)</li>
+    <li>Discoverer now correctly handles &lt;link/&gt; elements that contain multiple entries in their 'rel' attributes</li>
+    <li>Discoverer now takes redirections into account when performing Yadis discovery, fixes compatibility with signon.com</li>
+    <li>Discoverer now allows html discovery when checking an identity provided by an OP, fixes compatibility with flickr.com</li>
+    <li>Responses from IdPs sent with HTTP error codes are now still processed by Poidsy</li>
+    <li>Poidsy now supports IdPs saying they don't support a certain association or session type, and will try to accomodate them</li>
+    <li>Poidsy now correctly validates the return_to URL provided by IdPs</li>
+    <li>Fix potential bug when using Poidsy over HTTPS on a port other than 80</li>
+    <li>Poidsy now correctly validates the claimed_id (OpenID 2.0) or identity (OpenID 1.1) returned by IdPs</li>
+    <li>Decoupled simple registration extension &mdash; to use this you must now include <tt>sreg.ext.php</tt> before including Poidsy's processor</li>
+    <li>Repurposed <tt>SREG_*</tt> constants so they can be used when defining <tt>OPENID_SREG_*</tt> settings</li>
+    <li>Added support for Attribute Exchange extension</li>
+   </ul>
+   <h3 id="4">0.4 &rarr; 0.5</h3>
+   <ul>
+    <li>Diffie-Hellman encrypted keys are now decrypted when they're received, rather than every time that they're used</li>
+    <li>Fixed the Discoverer raising E_NOTICE errors in some cases</li>
+    <li>Documented all methods of the KeyManager class</li>
+    <li>Further refactoring and tidying of request processor</li>
+    <li>Renamed some methods of the KeyManager class to use better terminology</li>
+    <li>The trust_root URL will now be truncated to contain the return_to URL (thanks to Bernd Eckenfels for the bug report)</li>
+    <li>Added support for Yadis discovery</li>
+    <li>Fixed E_NOTICE errors when receiving SREG information</li>
+    <li>Clarify reasons why checkid_immediate might not work properly in the JavaScript example</li>
+    <li>Added support for sending the correct OpenID 2.0 namespace parameter when discovery indicates the end point supports 2.0</li>
+    <li>Fixed E_NOTICE errors when POSTing to an URL failed for any reason</li>
+    <li>Requests to OpenID 2.0 end points now send openid.realm not openid.trust_root</li>
+    <li>Support for OpenID 2.0 identifier selection</li>
+    <li>OpenID 1.x requests no longer send an openid.ns parameter (fixes errors when using Blogger accounts)</li>
+    <li>Added Google and Yahoo shortcuts to the basic example</li>
+    <li>The discovery agent now tracks all servers and services it's told about</li>
+   </ul>
+   <h3 id="3">0.3 &rarr; 0.4</h3>
+   <ul>
+    <li>Added support for HMAC-SHA256 association type</li>
+    <li>The processor will now accept $_POST['openid_identifier'] if $_POST['openid_url'] is not set (and OPENID_URL is not defined)</li>
+    <li>Added support for discovery via openid2.provider and openid2.local_id links</li>
+    <li>Abstracted dumb authorisation procedure into KeyManager</li>
+    <li>Removed autherror error code (all authorisation errors are now "noauth")</li>
+    <li>Messages instructing Poidsy to invalidate an association handle are now 
+    authenticated with the provider before the handle is actually invalidated.</li>
+    <li>Poidsy now sends the openid.claimed_id argument to identity providers</li>
+    <li>Changed the behaviour of OPENID_IMMEDIATE. If the constant is defined, 
+    an immediate request will be attempted first (as before). If the constant is
+    true, then Poidsy will fail if the provider requires setup (for use in
+    "AJAX"-like applications). If the constant is false, Poidsy will continue
+    on to a setup request as it did in 0.2 and earlier.</li>
+    <li>Fix bug in discovery engine which could be used to authenticate illegal,
+    fake identifiers.</li>
+    <li>Add support for Diffie-Hellman key exchange (DH-SHA1 and DH-SHA256 session types)</li>
+    <li>Fixed wrong session_type being sent due to misreading of the specs</li>
+    <li>Refactoring and general tidying of the main request processor</li>
+   </ul>
+   <h3 id="2">0.2 &rarr; 0.3</h3>
+   <ul>
+    <li>Added support for the Simple Registration Extension</li>
+    <li>Updated demo to request and display SREG fields</li>
+    <li>Added keymanager library and keycache file</li>
+    <li>Poidsy now supports associate mode, and uses it by default</li>
+    <li>Added compatibility test script</li>
+    <li>Poidsy now passes openid.ns in all requests</li>
+    <li>Poidsy will no longer send an initial checkid_immediate request unless
+    OPENID_IMMEDIATE is defined</li>
+    <li>Moved the demo.php file into examples/basic/</li>
+    <li>Poidsy now always passes the trust_root argument as some providers break
+    without it. By default it is sent as the current URL, but can be overridden
+    using the OPENID_TRUSTROOT constant</li>
+    <li>HTML entities are now handled properly when discovering identity provider
+    URLs</li>
+    <li>The URL normaliser has been improved to prevent people expressing the same
+    identity in multiple ways. Changes include:
+     <ul>
+      <li>Usernames (and passwords) are now stripped unless OPENID_ALLOWUSER is set</li>
+      <li>Queries are now stripped unless OPENID_ALLOWQUERY is set</li>
+      <li>Empty and default ports are now stripped</li>
+      <li>Trailing full stops are now stripped from domain names</li>
+      <li>/./ and /../ in paths are now collapsed</li>
+     </ul>
+    </li>
+    <li>Added a new example that uses JavaScript and a hidden iframe</li>
+    <li>Added error codes &mdash; whenever an error is encountered
+    $_SESSION['openid']['errorcode'] is now populated with a short string
+    identifying the problem. This is to allow implementors to perform different
+    actions on certain errors, or to localise the error messages.</li>
+    <li>Fixed minor bug in URL builder that lead to an extra ampersand in URLs
+    in some cases</li>
+    <li>The discovery engine can now specify the version of the data it has recovered</li>
+   </ul>
+   <h3 id="1">0.1 &rarr; 0.2</h3>
+   <ul>
+    <li>Added version and link to the top of the license header in each file</li>
+    <li>The processor now catches exceptions thrown by the discovery agent</li>
+    <li>The processor now catches exceptions thrown when trying to POST data to
+    the provider</li>
+    <li>The identity returned by the identity provider is now checked against the
+    identity that poidsy was trying to validate</li>
+    <li>The processor no longer requires that openid_url be present in $_REQUEST
+    as well as $_POST</li>
+    <li>The URL can now be passed to the processor using the OPENID_URL constant,
+    instead of as a POST var</li>
+    <li>Wrapped most lines in processor.php to be less than 80 characters long</li>
+    <li>Added lots of comments to the demonstration consumer explaining what's happening</li>
+    <li>Return URLs now have a 'nonce' added to them that's checked against the
+    user's session. This prevents request replay attacks.</li>
+    <li>Improved detection of the URL that user should be redirected to. Poidsy
+    now preserves all non-OpenID GET arguments.</li>
+    <li>Added throttling to prevent malicious users from using Poidsy to launch
+    a DoS attack against a remote site.</li>
+    <li>Poidsy is now aware of HTTP redirects when trying to discover the OpenID
+    server, and updates the identity accordingly. This prevents people from
+    "stealing" URLs that redirect to their own site</li>
+    <li>The URL normaliser now adds a trailing forward-slash if one isn't included</li>
+   </ul>
+  </div>
+  <div class="right">
+   <h2 class="first">Contents</h2>
+   <ul>
+    <li><a href="#1">0.1 &rarr; 0.2</a></li>
+    <li><a href="#2">0.2 &rarr; 0.3</a></li>
+    <li><a href="#3">0.3 &rarr; 0.4</a></li>
+    <li><a href="#4">0.4 &rarr; 0.5</a></li>
+    <li><a href="#5">0.5 &rarr; 0.6</a></li>
+    <li><a href="#6">0.6 &rarr; 0.7</a></li>
+   </ul>
+   <h2>Downloads</h2>
+   <ul>
+    <li><a href="poidsy-0.6.tgz">poidsy-0.6.tgz</a> (23K)</li>
+    <li><a href="poidsy-0.5.tgz">poidsy-0.5.tgz</a> (18K)</li>
+    <li><a href="poidsy-0.4.tgz">poidsy-0.4.tgz</a> (14K)</li>
+    <li><a href="poidsy-0.3.tgz">poidsy-0.3.tgz</a> (9.9K)</li>
+    <li><a href="poidsy-0.2.tgz">poidsy-0.2.tgz</a> (5.7K)</li>
+    <li><a href="poidsy-0.1.tgz">poidsy-0.1.tgz</a> (3.9K)</li>
+   </ul>
+  </div>
+ </body>
+</html>

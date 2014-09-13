@@ -1,0 +1,328 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+ <head>
+  <title>Poidsy - A PHP OpenID Consumer</title>
+  <link rel="stylesheet" href="style.css" type="text/css">
+  <link href="prettify.css" type="text/css" rel="stylesheet">
+  <script type="text/javascript" src="prettify.js"></script>
+ </head>
+ <body onLoad="prettyPrint();">
+  <h1><img src="openid.png" alt="OpenID logo"> Poidsy <small>A PHP OpenID Consumer</small></h1>
+  <ul id="menu">
+   <li><a href="index.html">Home</a></li>
+   <li><a href="instructions.html">Instructions</a></li>
+   <li><a href="changelog.html">Changelog</a></li>
+  </ul>
+  <div class="left">
+   <h2 class="first">Background Information</h2>
+   <p>
+    Poidsy is designed to be both easy to use and easy to integrate with
+    existing systems. This document explains the developer's interface to
+    Poidsy, and works through modifying a basic authentication script
+    to accept OpenID logins with Poidsy.
+   </p>
+   <h3>Requirements</h3>
+   <p>
+    Before you begin using Poidsy, you need to check that your environment
+    is supported. The easiest way to do this is to download a release of
+    Poidsy, and view the included test.php file in your web browser. This will
+    tell you about any problems it has encountered, and what will/will not work
+    as a result.
+   </p>
+   <h3>How it works</h3>
+   <p>
+    The bulk of the work done by Poidsy is done by the <code>processor.php</code>
+    script. This is the file that you will be including into your login page.
+   </p>
+   <p>
+    The processor is designed to be invoked in response to a form submission.
+    At present (version 0.1), it requires that <code>$_POST['openid_url']</code> is set to
+    the user-supplied identifier.
+   </p>
+   <p>
+    Once the processor has finished authenticating (or rejecting) the user's
+    identifier, it will supply the details in a session variable. Thus, to
+    actually make use of Poidsy's results, you will need to call
+    <code>session_start()</code> on your login page (if you're not already).
+   </p>
+   <p>
+    While Poidsy is authenticating an identifier, the user may be redirected
+    between the login page and their identity provider a number of times.
+    Whenever the user is redirected to the login page during this process,
+    the <code>openid.mode</code> parameter will be present.
+   </p>
+   <h2>Adding OpenID support to an existing login form</h2>
+   <p>
+    This example will walk through adding Poidsy to an existing login form.
+    The system we'll be modifying currently deals with usernames and passwords.
+    It is assumed that the Poidsy files are extracted to a <code>poidsy</code>
+    directory in the same directory as the login file.
+   </p>
+   <p>
+    The example code that we'll be modifying is included below. For the sake
+    of brevity, the specific logic of finding users, checking passwords, and
+    actually logging them in is abstracted away.
+   </p>
+<code class="prettyprint"> &lt;?PHP
+
+ if (isset($_POST['user']) &amp;&amp; isset($_POST['pass'])) {
+  if (passwordMatches($_POST['user'], hashPassword($_POST['pass']))) {
+   setUser($_POST['user']);
+   redirectAndExit();
+  } else {
+   define('ERROR', 'Invalid username/password combination');
+  }
+ }
+
+ if (defined('ERROR')) {
+  echo '&lt;div class="error"&gt;ERROR: ', htmlentities(ERROR), '&lt;/div&gt;';
+ }
+
+?&gt;
+&lt;p&gt;Enter your details below to login:&lt;/p&gt;
+&lt;form action="login.php" method="post"&gt;
+ &lt;label&gt;Username: &lt;input type="text" name="user"&gt;&lt;/label&gt;
+ &lt;label&gt;Password: &lt;input type="password" name="pass"&gt;&lt;/label&gt;
+ &lt;input type="submit" value="Login"&gt;
+&lt;/form&gt;
+</code>
+   <h3>Step 1: Adding a new form</h3>
+   <p>
+    The first step is to provide users with a second form to enter their
+    OpenID identifier in. It's good practice to include a little OpenID
+    logo in the input field, so users can instantly see that it's for an
+    OpenID identifier. Poidsy handily comes with such a logo.
+   </p>
+   <p>
+    The following code is added below the existing form:
+   </p>
+<code class="prettyprint">&lt;p&gt;Alternatively, login using an OpenID identifier:&lt;/p&gt;
+&lt;form action="login.php" method="post"&gt;
+ &lt;input type="text" name="openid_url"
+        style="background-image: url('poidsy/openid.gif') no-repeat;
+               padding-left: 20px;"&gt;
+ &lt;input type="submit" value="Login"&gt;
+&lt;/form&gt;
+</code>
+   <h3>Step 2: Starting a session</h3>
+   <p>
+    As described above, Poidsy uses sessions to track data and return its
+    results. As our login form currently doesn't use sessions, we need to
+    add a call to <code>session_start();</code> before we'll be using
+    Poidsy or its results.
+   </p>
+   <p>
+    The session start code therefore needs to be added before the main if statement.
+   </p>
+<code class="prettyprint"><span style="opacity: 0.5;">&lt;?PHP</span>
+
+ session_start();
+
+<span style="opacity: 0.5;"> if (isset($_POST['user']) &amp;&amp; isset($_POST['pass'])) {</span>
+</code>
+   <h3>Step 3: Including the processor</h3>
+   <p>
+    The next step is to include Poidsy's processor when there's processing to be
+    done. This is either when the user has just submitted the OpenID form, or
+    when they've been redirected back from their provider during the
+    authentication process.
+   </p>
+   <p>
+    We prepend the following conditions to the start of the if statement to
+    include the processor when neccessary. Note that PHP translates the
+    openid.mode argument to openid_mode.
+   </p>
+<code class="prettyprint"><span style="opacity: 0.5;"> session_start(); </span>
+
+ if (isset($_POST['openid_url']) || isset($_REQUEST['openid_mode'])) {
+
+  // OpenID login attempt
+  require('poidsy/processor.php');
+
+ } else <span style="opacity: 0.5;">if (isset($_POST['user']) &amp;&amp; isset($_POST['pass'])) {</span>
+</code>
+   <h3>Step 4: Handling errors</h3>
+   <p>
+    Just like normal login attempts, OpenID authentications can fail for a
+    variety of reasons (such as the identifier not being a valid OpenID
+    endpoint, or the provide refusing to authenticate the client), so we
+    need to handle errors and display them to the user.
+   </p>
+   <p>
+    If an error is encountered, Poidsy will have set the
+    <code>$_SESSION['openid']['error']</code> variable with a description
+    of the problem. We simply check for this and pass it on to the user:
+   </p>
+<code class="prettyprint"><span style="opacity:0.5;">require('poidsy/processor.php');</span>
+
+ } else if (isset($_SESSION['openid']['error'])) {
+
+  // Failed OpenID login attempt
+  define('ERROR', $_SESSION['openid']['error']);
+  unset($_SESSION['openid']['error']);
+
+ <span style="opacity: 0.5;">} else if (isset($_POST['user']) &amp;&amp; isset($_POST['pass'])) {</span>
+</code>
+   <h3>Step 5: Handling success</h3>
+   <p>
+    The final thing to do is to handle the case when a user has successfully
+    authenticated themselves using an OpenID identifier. In a typical
+    environment this will be a two-step process: creating a new account for
+    the user if they haven't previously logged in, and then logging the user
+    in to their account.
+   </p>
+   <p>
+    The following code adds another branch to our if statement:
+   </p>
+<code class="prettyprint"><span style="opacity:0.5;">unset($_SESSION['openid']['error']);</span>
+
+ } else if (isset($_SESSION['openid']['validated']) &amp;&amp; $_SESSION['openid']['validated']) {
+
+  // OpenID authentication successful
+
+  if (!isAccount($_SESSION['openid']['identity'])) {
+
+   // Create an account if they need one, using a fake
+   // password hash so users can't login normally
+   createAccount($_SESSION['openid']['identity'], 'invalid'):
+
+  }
+
+  setUser($_SESSION['openid']['identity']);
+  unset($_SESSION['openid']['validated']);
+  redirectAndExit();
+
+ <span style="opacity: 0.5;">} else if (isset($_POST['user']) &amp;&amp; isset($_POST['pass'])) {</span>
+</code>
+   <h2>Summary</h2>
+   <p>
+    Hopefully this document has given you a sense of how to use Poidsy.
+    It is designed to work transparently with your existing applications,
+    and as demonstrated above can be integrated in five simple steps.
+   </p>
+   <p>
+    Note that, of course, how you implement Poidsy very much depends on
+    your existing system and your requirements. If you are going to switch
+    to using just OpenID, there is obviously no need to deal with
+    password hashes as was done in this example, and you could in fact
+    not use a backend database at all for your users &mdash; just rely on
+    Poidsy to populate the $_SESSION['openid'] array.
+   </p>
+  </div>
+  <div class="right">
+  <h2 class="first">Feedback</h2>
+  <p>
+   If you're using Poidsy (or are trying to but are having
+   problems) then I'd love to hear from you. My contact details can be found
+   on my <a href="http://chris.smith.name/" rel="me">personal website</a>.
+  </p>
+  <h2>Constant reference</h2>
+  <p>
+   You can define a set of constants to control the behaviour of
+   Poidsy. These should be defined before the processor is included.
+  </p>
+  <p class="asof">From Poidsy 0.1:</p>
+  <dl>
+   <dt>OPENID_URL</dt>
+   <dd>
+    The user-supplied OpenID URL to validate. This should only be specified
+    for the initial request (not any subsequent redirects where openid.mode is
+    set). If not provided, Poidsy will use the value of $_POST['openid_url'] if it exists
+   </dd>
+  </dl>
+  <p class="asof">From Poidsy 0.2:</p>
+  <dl>
+   <dt>OPENID_THROTTLE_NUM</dt>
+   <dd>
+    The maximum number of requests to allow before throttling a user.
+    Default value is 3.
+   </dd>
+   <dt>OPENID_THROTTLE_GAP</dt>
+   <dd>
+    The number of seconds that have to ellapse between requests before the
+    user's counter is reset. Default value is 30.
+   </dd>
+  </dl>
+  <p class="asof">From Poidsy 0.3:</p>
+  <dl>
+   <dt>OPENID_SREG_REQUEST</dt>
+   <dd>
+    A comma-separated list of fields to request from the user via the simple
+    registration extension. Use of this constant implies that the user will
+    be required to manually input the data if their provider doesn't supply it.
+   </dd>
+   <dt>OPENID_SREG_OPTIONAL</dt>
+   <dd>
+    A comma-separated list of fields that the user's provider may provide, but
+    aren't required by the application.
+   </dd>
+   <dt>OPENID_SREG_POLICY</dt>
+   <dd>
+    An URL for a document that describes how the data requested using SREG is
+    going to be used.
+   </dd>
+   <dt>OPENID_NOKEYMANAGER</dt>
+   <dd>
+    Stops Poidsy using its key manager, forcing it to use dumb mode instead.
+    The value of the constant is irrelevant, only whether it is defined or not.
+   </dd>
+   <dt>OPENID_IMMEDIATE</dt>
+   <dd>
+    Forces Poidsy to try an openid_immediate request first. If not defined,
+    Poidsy will send an openid_setup request, which allows the identity provider
+    to interact with the user.</dd><dd>As of 0.4, if this is set to <code>true</code>,
+    Poidsy will error if the provider requires interaction, otherwise Poidsy
+    will send a setup request. Previous behaviour always errored.
+   </dd>
+   <dt>OPENID_TRUSTROOT</dt>
+   <dd>
+    The trust root to send to providers. Used to tell users what site they're
+    logging into. Should be a fully qualified URL that encompasses the URL of
+    the login script. Defaults to the current URL. </dd><dd>As of 0.5, this may 
+    be truncated in order to ensure it is above the return_to URL.
+   </dd>
+   <dt>OPENID_ALLOWUSER</dt>
+   <dd>
+    If defined, allows usernames (and passwords) in identity URLs. These are
+    stripped by default to prevent users using the same identity with multiple
+    (bogus, unused) usernames.
+   </dd>
+   <dt>OPENID_ALLOWQUERY</dt>
+   <dd>
+    If defined, allows queries (the part of the URL after the "?" character) in
+    identity URLs. These are stripped by default to prevent users from using
+    the same identity with multiple (unused) query strings.
+   </dd>
+  </dl>
+  <h2>Error codes</h2>
+  <p>
+   As of Poidsy 0.3, each error has an associated errorcode that defines
+   the type of error. These error codes are:
+  </p>
+  <dl>
+   <dt style="text-decoration: line-through;">autherror</dt>
+   <dd>Error when trying to POST data to authenticate a request in dumb mode, probably because the provider went down. Removed as of Poidsy 0.4.</dd>
+   <dt>cancelled</dt>
+   <dd>The user or their identity provider cancelled the request for some reason</dd>
+   <dt>diffid</dt>
+   <dd>The provider validated a different identity to the one Poidsy requested. Indicates that the provider is probably broken.</dd>
+   <dt>diffreturnto</dt>
+   <dd>The provider gave a different return_to URL to the one the user arrived at</dd>
+   <dt>discovery</dt>
+   <dd>There was an error during discovery (site down, unsupported protocol, etc)</dd>
+   <dt>noauth</dt>
+   <dd>The signature of the provider's response didn't match the response. This could mean that something is broken, or that someone is trying one of a variety of attacks.</dd>
+   <dt>noimmediate</dt>
+   <dd>OPENID_IMMEDIATE was defined but the request couldn't be completed immediately</dd>
+   <dt>nonce</dt>
+   <dd>The nonce used by Poidsy didn't match what it was expecting. This normally means the user tried to go to an expired page, or someone was trying to perform a replay attack.</dd>
+   <dt>notvalid</dt>
+   <dd>The identity isn't valid (no openid.server link found)</dd>
+   <dt>perror</dt>
+   <dd>The provider returned an error at some stage</dd>
+   <dt>throttled</dt>
+   <dd>The user is being throttled by Poidsy. See the description of the OPENID_THROTTLE constants above.</dd>
+  </dl>
+  </div>
+ </body>
+</html>
